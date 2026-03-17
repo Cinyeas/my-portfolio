@@ -1,0 +1,1312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Xinyi Kong — AI Product Manager</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    /* ── Reset ── */
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+    /* ── Design Tokens ─────────────────────────────────────────
+       Change accent color here to retheme the whole site.       */
+    :root{
+      --bg:#F2F6F3;--bg-card:#fff;--text:#0C1210;--text-mid:#4A5550;--text-light:#8A9990;
+      --accent:#1AC97A;--accent-dim:rgba(26,201,122,.10);--accent-txt:#0A7A48;
+      --border:#D4E4DA;--border-mid:#B8D0C0;
+      --shadow-sm:0 2px 12px rgba(10,60,30,.07);--shadow-md:0 8px 32px rgba(10,60,30,.11);
+      --ff-d:'Bricolage Grotesque',sans-serif;--ff-b:'DM Sans',system-ui,sans-serif;--ff-m:'Space Mono',monospace;
+    }
+    html{scroll-behavior:smooth}
+    body{background:var(--bg);color:var(--text);font-family:var(--ff-b);font-size:16px;line-height:1.6;overflow-x:hidden;-webkit-font-smoothing:antialiased;cursor:none}
+    a,button{cursor:none}
+    ::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--accent)}
+
+    /* ── Custom Cursor ── */
+    .cur-dot{position:fixed;pointer-events:none;z-index:9999;width:8px;height:8px;background:var(--accent);border-radius:50%;transform:translate(-50%,-50%)}
+    .cur-ring{position:fixed;pointer-events:none;z-index:9998;width:34px;height:34px;border:1.5px solid rgba(26,201,122,.5);border-radius:50%;transform:translate(-50%,-50%)}
+    .noise{position:fixed;inset:0;pointer-events:none;z-index:1000;opacity:.022;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-size:200px}
+
+    /* ── Scroll Progress Bar ── */
+    .progress-bar{position:fixed;top:0;left:0;z-index:201;height:2.5px;background:var(--accent);border-radius:0 2px 2px 0;transition:width .1s linear}
+
+    /* nav */
+    nav{position:fixed;top:0;left:0;right:0;z-index:200;height:64px;padding:0 clamp(1.5rem,5vw,4.5rem);display:flex;align-items:center;justify-content:space-between;transition:background .32s,box-shadow .32s}
+    nav.scrolled{background:rgba(242,246,243,.93);backdrop-filter:blur(18px) saturate(1.5);box-shadow:0 1px 0 var(--border)}
+    .nav-logo{font-family:var(--ff-d);font-size:1rem;font-weight:800;letter-spacing:.03em;text-transform:uppercase;color:var(--text);text-decoration:none;transition:color .2s}
+    .nav-logo .dot{color:var(--accent)}
+    .nav-logo:hover{color:var(--accent-txt)}
+    .nav-links{display:flex;gap:0;list-style:none;align-items:center}
+    .nav-links li{position:relative}
+    .nav-links a{font-family:var(--ff-b);font-size:.85rem;font-weight:400;color:var(--text-mid);text-decoration:none;padding:.3rem .85rem;display:flex;align-items:center;gap:.35rem;border-radius:6px;position:relative;transition:color .22s,background .22s}
+    .nav-links a:hover{color:var(--text);background:rgba(26,201,122,.1)}
+    .nav-links a.active{color:var(--text);font-weight:500}
+    .nav-links a.active::before{content:'';display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--accent);flex-shrink:0}
+    .nav-links a::after{content:'';position:absolute;bottom:0;left:.85rem;right:.85rem;height:1.5px;background:var(--accent);border-radius:1px;transform:scaleX(0);transform-origin:left;transition:transform .22s ease}
+    .nav-links a:hover::after,.nav-links a.active::after{transform:scaleX(1)}
+    .nav-pill{font-family:var(--ff-m);font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;background:var(--accent);color:#fff;padding:.5rem 1.2rem;text-decoration:none;margin-left:.75rem;border-radius:100px;transition:opacity .2s,transform .22s;box-shadow:0 2px 12px rgba(26,201,122,.3)}
+    .nav-pill:hover{opacity:.88;transform:translateY(-2px)}
+
+    /* ── Scroll Reveal Animation ── */
+    .reveal{opacity:0;transform:translateY(24px);transition:opacity .78s ease,transform .78s ease}
+    .reveal.visible{opacity:1;transform:translateY(0)}
+
+    /* ── Hero Section ── */
+    #hero{min-height:100vh;display:grid;grid-template-columns:1.05fr 1fr;align-items:center;gap:2rem;padding:5.5rem clamp(1.5rem,5vw,4.5rem) 3rem;position:relative;overflow:hidden}
+    .hero-grid-bg{position:absolute;inset:0;background-image:linear-gradient(rgba(26,201,122,.065) 1px,transparent 1px),linear-gradient(90deg,rgba(26,201,122,.065) 1px,transparent 1px);background-size:56px 56px;mask-image:radial-gradient(ellipse 80% 80% at 65% 50%,black 0%,transparent 70%)}
+    .hero-glow{position:absolute;inset:0;background:radial-gradient(ellipse 55% 50% at 75% 45%,rgba(26,201,122,.09) 0%,transparent 60%),radial-gradient(ellipse 35% 35% at 15% 80%,rgba(26,201,122,.05) 0%,transparent 55%)}
+    .hero-left{position:relative;z-index:2}
+    .hero-eyebrow{font-family:var(--ff-m);font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;color:var(--accent-txt);margin-bottom:1.5rem;display:flex;align-items:center;gap:.7rem;opacity:0;animation:riseUp .7s .1s ease forwards}
+    .hero-eyebrow::before{content:'';width:28px;height:1.5px;background:var(--accent)}
+    .hero-name{font-family:var(--ff-d);font-size:clamp(4rem,9vw,9.5rem);font-weight:800;line-height:.88;letter-spacing:-.035em;text-transform:uppercase;color:var(--text);margin-bottom:1.5rem;opacity:0;animation:riseUp .75s .22s ease forwards}
+    .hero-name .acc{color:var(--accent)}.hero-name .dot{color:var(--accent)}
+    .hero-tagline{font-family:var(--ff-b);font-size:clamp(.95rem,1.7vw,1.1rem);font-weight:300;color:var(--text-mid);max-width:460px;line-height:1.75;margin-bottom:2.5rem;opacity:0;animation:riseUp .7s .36s ease forwards}
+    .hero-stats{display:flex;flex-wrap:nowrap;gap:0;margin-bottom:2.75rem;opacity:0;animation:riseUp .7s .5s ease forwards}
+    .h-stat{flex-shrink:0;padding-right:1.75rem;margin-right:1.75rem;border-right:1px solid var(--border)}
+    .h-stat:last-child{border-right:none;padding-right:0;margin-right:0}
+    .h-stat-val{font-family:var(--ff-d);font-size:clamp(1.7rem,2.8vw,2.2rem);font-weight:700;letter-spacing:-.03em;line-height:1;color:var(--text);white-space:nowrap;display:block}
+    .h-stat-lbl{font-family:var(--ff-m);font-size:.52rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-light);margin-top:.3rem;white-space:nowrap;display:block}
+    .hero-btns{display:flex;gap:.9rem;flex-wrap:wrap;opacity:0;animation:riseUp .7s .64s ease forwards}
+    .btn-solid{font-family:var(--ff-m);font-size:.62rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;background:var(--text);color:#fff;padding:.9rem 2.1rem;text-decoration:none;border-radius:6px;display:inline-flex;align-items:center;gap:.5rem;transition:opacity .2s,transform .2s}
+    .btn-solid:hover{opacity:.85;transform:translateY(-2px)}
+    .btn-ghost{font-family:var(--ff-m);font-size:.62rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;background:transparent;color:var(--text);border:1.5px solid var(--border-mid);padding:.9rem 2.1rem;text-decoration:none;border-radius:6px;display:inline-flex;align-items:center;gap:.5rem;transition:border-color .2s,color .2s,transform .2s}
+    .btn-ghost:hover{border-color:var(--accent);color:var(--accent-txt);transform:translateY(-2px)}
+
+    /* ── Floating Keyword Bubbles ── */
+    .hero-right{position:relative;height:82vh;min-height:480px;z-index:2;opacity:0;animation:fadeIn .9s .38s ease forwards}
+    .kw{position:absolute;white-space:nowrap;border-radius:100px;user-select:none;font-family:var(--ff-b);font-weight:500;transition:transform .2s,box-shadow .2s;box-shadow:var(--shadow-sm)}
+    .kw:hover{transform:scale(1.07) translateY(-4px) !important;box-shadow:var(--shadow-md)}
+    .kw-green{background:var(--accent);color:#fff;padding:.55rem 1.3rem;font-size:.9rem}
+    .kw-dark{background:var(--text);color:#fff;padding:.5rem 1.2rem;font-size:.82rem}
+    .kw-white{background:var(--bg-card);color:var(--text);border:1.5px solid var(--border);padding:.5rem 1.15rem;font-size:.82rem}
+    .kw-mint{background:var(--accent-dim);color:var(--accent-txt);border:1.5px solid rgba(26,201,122,.25);padding:.48rem 1.1rem;font-size:.8rem}
+    @keyframes f1{0%,100%{transform:translateY(0)} 50%{transform:translateY(-14px)}}
+    @keyframes f2{0%,100%{transform:translateY(0) rotate(0)} 50%{transform:translateY(-10px) rotate(.6deg)}}
+    @keyframes f3{0%,100%{transform:translateY(0)} 50%{transform:translateY(-18px)}}
+    @keyframes f4{0%,100%{transform:translateY(0) rotate(0)} 50%{transform:translateY(-8px) rotate(-.5deg)}}
+    @keyframes f5{0%,100%{transform:translateY(0) rotate(0)} 50%{transform:translateY(-12px) rotate(.3deg)}}
+    @keyframes f6{0%,100%{transform:translateY(0) rotate(0)} 50%{transform:translateY(-16px) rotate(-.4deg)}}
+
+    /* project preview strip */
+    #preview{background:var(--bg-card);border-top:1px solid var(--border)}
+    .preview-inner{max-width:1280px;margin:0 auto;padding:4rem clamp(1.5rem,5vw,4.5rem)}
+    .preview-header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:2rem}
+    .preview-label{font-family:var(--ff-m);font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(--text-light)}
+    .preview-title{font-family:var(--ff-d);font-size:clamp(1.5rem,3vw,2.2rem);font-weight:700;letter-spacing:-.03em}
+    .preview-title .acc{color:var(--accent)}
+    .preview-rows{}
+    .preview-row{display:grid;grid-template-columns:3rem 1fr auto auto;align-items:center;gap:1.5rem;padding:1.1rem 1rem;border-top:1px solid var(--border);border-radius:8px;transition:background .22s,transform .22s;cursor:none}
+    .preview-row:hover{background:var(--accent-dim);transform:translateX(4px)}
+    .preview-row:last-child{}
+    .pre-num{font-family:var(--ff-m);font-size:.62rem;color:var(--text-light);letter-spacing:.08em}
+    .pre-info{display:flex;align-items:baseline;gap:1.25rem;min-width:0}
+    .pre-name{font-family:var(--ff-d);font-size:clamp(1rem,1.8vw,1.25rem);font-weight:700;letter-spacing:-.025em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .pre-co{font-family:var(--ff-m);font-size:.58rem;letter-spacing:.06em;text-transform:uppercase;color:var(--text-light);white-space:nowrap}
+    .pre-tags{display:flex;gap:.4rem;flex-wrap:nowrap}
+    .pre-tag{font-family:var(--ff-m);font-size:.52rem;letter-spacing:.06em;text-transform:uppercase;padding:.18rem .52rem;border-radius:4px;border:1px solid var(--border);color:var(--text-light);white-space:nowrap}
+    .pre-arrow{font-size:.9rem;color:var(--accent);flex-shrink:0;transition:transform .2s}
+    .preview-row:hover .pre-arrow{transform:translateX(4px)}
+
+    /* ── Section Divider ── */
+    .divider{border:none;border-top:1px solid var(--border);margin:0}
+
+    /* ── Shared Section Layout ── */
+    .s-wrap{padding:6rem clamp(1.5rem,5vw,4.5rem);max-width:1280px;margin:0 auto}
+    .s-eyebrow{font-family:var(--ff-m);font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(--accent-txt);margin-bottom:1rem;display:flex;align-items:center;gap:.65rem}
+    .s-eyebrow::after{content:'';flex:0 0 30px;height:1.5px;background:var(--accent);opacity:.6}
+    .s-title{font-family:var(--ff-d);font-size:clamp(2.2rem,4.5vw,3.8rem);font-weight:700;line-height:1.0;letter-spacing:-.035em;margin-bottom:3rem}
+    .s-title .acc{color:var(--accent)}
+
+    /* ── About Section ── */
+    .about-grid{display:grid;grid-template-columns:1.1fr 1fr;gap:5rem;align-items:start}
+    .about-bio{font-size:1.05rem;line-height:1.85;color:var(--text-mid)}
+    .about-bio p+p{margin-top:1.1rem}
+    .about-bio strong{color:var(--text);font-weight:500}
+    .about-cards{display:flex;flex-direction:column;gap:1rem}
+    .a-card{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:1.4rem 1.5rem;display:flex;align-items:flex-start;gap:1rem;transition:border-color .25s,box-shadow .25s}
+    .a-card:hover{border-color:rgba(26,201,122,.4);box-shadow:var(--shadow-sm)}
+    .a-card-icon{width:40px;height:40px;border-radius:10px;background:var(--accent-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:.1rem;color:var(--accent-txt)}
+    .a-card-icon svg{width:20px;height:20px}
+    .a-title{font-family:var(--ff-d);font-size:1rem;font-weight:600;letter-spacing:-.01em;color:var(--text);margin-bottom:.3rem}
+    .a-desc{font-size:.82rem;color:var(--text-mid);line-height:1.58}
+
+    /* ── Experience Timeline ── */
+    .timeline{position:relative;padding-left:.1rem}
+    .timeline::before{content:'';position:absolute;left:0;top:8px;bottom:48px;width:1px;background:linear-gradient(to bottom,var(--accent) 0%,var(--border) 100%)}
+    .tl-item{position:relative;padding-left:2.25rem;padding-bottom:3.25rem}
+    .tl-dot{position:absolute;left:-5px;top:7px;width:11px;height:11px;border-radius:50%;background:var(--bg);border:2px solid var(--accent);transition:background .22s}
+    .tl-item:hover .tl-dot{background:var(--accent)}
+    .tl-meta{font-family:var(--ff-m);font-size:.58rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent-txt);margin-bottom:.5rem}
+    .tl-co{font-family:var(--ff-d);font-size:1.65rem;font-weight:700;letter-spacing:-.03em;color:var(--text);line-height:1.05;margin-bottom:.3rem}
+    .tl-role{font-size:.88rem;color:var(--text-mid);margin-bottom:1.1rem}
+    .tl-list{list-style:none;display:flex;flex-direction:column;gap:.55rem}
+    .tl-list li{font-size:.86rem;color:var(--text-mid);line-height:1.67;padding-left:1.15rem;position:relative}
+    .tl-list li::before{content:'→';position:absolute;left:0;color:var(--accent);font-size:.75rem;line-height:1.8}
+    .tl-tags{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:1rem}
+    .tl-tag{font-family:var(--ff-m);font-size:.53rem;letter-spacing:.07em;text-transform:uppercase;padding:.22rem .6rem;border-radius:5px;border:1px solid var(--border);color:var(--text-light)}
+
+    /* ── Projects Section ── */
+    .proj-grid-full{display:grid;grid-template-columns:repeat(3,1fr);gap:1.25rem}
+    .proj-card-full{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:1.5rem;position:relative;overflow:hidden;transition:box-shadow .28s,transform .28s,border-color .28s}
+    .proj-card-full::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--accent);transform:scaleX(0);transform-origin:left;transition:transform .32s}
+    .proj-card-full:hover::before{transform:scaleX(1)}
+    .proj-card-full:hover{box-shadow:var(--shadow-md);transform:translateY(-4px);border-color:rgba(26,201,122,.3)}
+    .pcf-header{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;margin-bottom:1.25rem}
+    .pcf-icon{width:44px;height:44px;border-radius:12px;background:var(--accent-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--accent-txt)}
+    .pcf-icon svg{width:22px;height:22px}
+    .pcf-num{font-family:var(--ff-m);font-size:.55rem;letter-spacing:.12em;color:var(--text-light);margin-bottom:.5rem}
+    .pcf-title{font-family:var(--ff-d);font-size:1.1rem;font-weight:700;letter-spacing:-.025em;color:var(--text);line-height:1.15;margin-bottom:.3rem}
+    .pcf-co{font-family:var(--ff-m);font-size:.56rem;letter-spacing:.08em;text-transform:uppercase;color:var(--text-light);margin-bottom:.9rem}
+    .pcf-desc{font-size:.88rem;color:var(--text-mid);line-height:1.65;margin-bottom:1.5rem}
+    .pcf-footer{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;padding-top:1.25rem;border-top:1px solid var(--border)}
+    .pcf-badge{display:inline-flex;align-items:center;background:var(--accent-dim);border-radius:6px;padding:.28rem .75rem;font-family:var(--ff-m);font-size:.58rem;font-weight:700;letter-spacing:.06em;color:var(--accent-txt)}
+    .pcf-tags{display:flex;gap:.4rem;flex-wrap:wrap}
+    .pcf-tag{font-family:var(--ff-m);font-size:.52rem;letter-spacing:.06em;text-transform:uppercase;padding:.2rem .55rem;border-radius:4px;border:1px solid var(--border);color:var(--text-light)}
+    /* project card image header */
+    .pcf-img{margin:-1.5rem -1.5rem 1.25rem;height:148px;overflow:hidden;position:relative;background:var(--bg)}
+    .pcf-img img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .45s ease}
+    .proj-card-full:hover .pcf-img img{transform:scale(1.06)}
+    .pcf-img-tag{position:absolute;bottom:.65rem;left:.85rem;background:rgba(242,246,243,.9);backdrop-filter:blur(10px);border:1px solid var(--border);border-radius:5px;padding:.22rem .62rem;font-family:var(--ff-m);font-size:.5rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-mid)}
+
+    /* edu emblem */
+    .edu-card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;margin-bottom:1.1rem}
+    .edu-emblem{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--ff-d);font-size:.55rem;font-weight:800;letter-spacing:.04em;text-align:center;line-height:1.15}
+
+    .btn-detail{font-family:var(--ff-m);font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;background:var(--text);color:#fff;border:none;padding:.65rem 1.4rem;border-radius:6px;display:inline-flex;align-items:center;gap:.45rem;transition:background .22s,transform .22s,box-shadow .22s;flex-shrink:0}
+    .btn-detail:hover{background:var(--accent);transform:translateY(-2px);box-shadow:0 4px 18px rgba(26,201,122,.35)}
+    .btn-detail:active{transform:translateY(0) scale(.97);box-shadow:none}
+    .d-arr{display:inline-block;transition:transform .22s}
+    .btn-detail:hover .d-arr{transform:translateX(4px)}
+
+    /* ── Photo Carousel ── */
+    #photos{padding:5rem 0;overflow:hidden}
+    .photos-header{padding:0 clamp(1.5rem,5vw,4.5rem);max-width:1280px;margin:0 auto 2.5rem;display:flex;align-items:flex-end;justify-content:space-between}
+    .carousel-nav{display:flex;gap:.6rem}
+    .carousel-btn{width:42px;height:42px;border-radius:50%;border:1.5px solid var(--border-mid);background:var(--bg-card);color:var(--text-mid);display:flex;align-items:center;justify-content:center;transition:border-color .2s,color .2s,background .2s,transform .2s;flex-shrink:0}
+    .carousel-btn:hover{border-color:var(--accent);color:var(--accent-txt);background:var(--accent-dim);transform:scale(1.08)}
+    .carousel-btn svg{width:16px;height:16px}
+    .carousel-track-wrap{position:relative}
+    .carousel-track-wrap::before,.carousel-track-wrap::after{content:'';position:absolute;top:0;bottom:0;width:80px;z-index:2;pointer-events:none}
+    .carousel-track-wrap::before{left:0;background:linear-gradient(to right,var(--bg) 0%,transparent 100%)}
+    .carousel-track-wrap::after{right:0;background:linear-gradient(to left,var(--bg) 0%,transparent 100%)}
+    .carousel-track{display:flex;gap:14px;padding:8px clamp(1.5rem,5vw,4.5rem)}
+    .photo-slide{flex-shrink:0;width:320px;border-radius:14px;overflow:hidden;background:var(--bg-card);border:1px solid var(--border);box-shadow:var(--shadow-sm);transition:transform .32s,box-shadow .32s}
+    .photo-slide:hover{transform:translateY(-6px) scale(1.015);box-shadow:var(--shadow-md)}
+    .photo-slide img{width:100%;height:240px;object-fit:cover;display:block;transition:transform .4s}
+    .photo-slide:hover img{transform:scale(1.05)}
+    .photo-slide-cap{padding:.7rem 1rem .85rem;font-family:var(--ff-b);font-size:.78rem;color:var(--text-mid);line-height:1.4}
+    .carousel-dots{display:flex;justify-content:center;gap:.45rem;margin-top:1.75rem}
+    .c-dot{width:6px;height:6px;border-radius:50%;background:var(--border-mid);transition:background .25s,width .25s;border:none}
+    .c-dot.active{background:var(--accent);width:20px;border-radius:3px}
+    .photo-note{margin:1.25rem clamp(1.5rem,5vw,4.5rem) 0;padding:.9rem 1.1rem;background:var(--accent-dim);border:1px solid rgba(26,201,122,.2);border-radius:8px;font-family:var(--ff-m);font-size:.58rem;letter-spacing:.06em;color:var(--accent-txt);display:flex;align-items:center;gap:.6rem;max-width:1280px;margin-left:auto;margin-right:auto}
+
+    /* ── Skills Section ── */
+    .skills-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;margin-bottom:1.5rem}
+    .sg{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:1.6rem;transition:border-color .25s}
+    .sg:hover{border-color:rgba(26,201,122,.35)}
+    .sg-head{font-family:var(--ff-m);font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;color:var(--accent-txt);margin-bottom:1rem;padding-bottom:.65rem;border-bottom:1px solid var(--border)}
+    .sg-list{list-style:none;display:flex;flex-direction:column;gap:.55rem}
+    .sg-list li{font-size:.88rem;color:var(--text-mid);display:flex;align-items:center;gap:.5rem}
+    .sg-list li::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--accent);flex-shrink:0}
+    .other-strip{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:1.4rem 1.6rem}
+    .other-head{font-family:var(--ff-m);font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;color:var(--text-light);margin-bottom:.9rem}
+    .other-tags{display:flex;flex-wrap:wrap;gap:.5rem}
+    .o-tag{font-family:var(--ff-m);font-size:.57rem;letter-spacing:.06em;text-transform:uppercase;padding:.28rem .7rem;border-radius:100px;border:1.5px solid var(--border-mid);color:var(--text-mid)}
+    .edu-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
+    .edu-card{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:2rem;transition:border-color .25s,box-shadow .25s}
+    .edu-card:hover{border-color:rgba(26,201,122,.4);box-shadow:var(--shadow-sm)}
+    .edu-period{font-family:var(--ff-m);font-size:.58rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent-txt)}
+    .edu-degree{font-family:var(--ff-d);font-size:1.3rem;font-weight:700;letter-spacing:-.025em;color:var(--text);margin:.8rem 0 .4rem;line-height:1.2}
+    .edu-school{font-size:.88rem;color:var(--text-mid)}
+
+    /* ── Contact Section ── */
+    #contact{background:var(--text);padding:8rem clamp(1.5rem,5vw,4.5rem) 5.5rem;position:relative;overflow:hidden}
+    .contact-glow{position:absolute;inset:0;background:radial-gradient(ellipse 55% 45% at 50% 50%,rgba(26,201,122,.07) 0%,transparent 65%);pointer-events:none}
+    .contact-inner{position:relative;max-width:1280px;margin:0 auto}
+    .c-eyebrow{font-family:var(--ff-m);font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);margin-bottom:1.75rem;opacity:.85}
+    .c-title{font-family:var(--ff-d);font-size:clamp(2.8rem,7vw,6.5rem);font-weight:800;letter-spacing:-.04em;line-height:.93;color:#fff;margin-bottom:1.5rem}
+    .c-title .acc{color:var(--accent)}
+    .c-body{font-size:1rem;color:rgba(255,255,255,.48);max-width:440px;line-height:1.8;margin-bottom:3rem}
+    .c-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;max-width:760px}
+    .c-card{background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:1.5rem 1.4rem;transition:background .25s,border-color .25s,transform .25s;text-decoration:none;color:inherit;display:flex;flex-direction:column;gap:.2rem}
+    .c-card:hover{background:rgba(255,255,255,.09);border-color:rgba(26,201,122,.4);transform:translateY(-3px)}
+    .c-card-icon{width:40px;height:40px;border-radius:10px;background:rgba(26,201,122,.15);border:1px solid rgba(26,201,122,.25);display:flex;align-items:center;justify-content:center;margin-bottom:.9rem;color:var(--accent)}
+    .c-card-icon svg{width:20px;height:20px}
+    .c-card-label{font-family:var(--ff-m);font-size:.58rem;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:.2rem}
+    .c-card-value{font-family:var(--ff-b);font-size:.9rem;color:#fff;line-height:1.35;word-break:break-word}
+    .c-card-action{font-family:var(--ff-m);font-size:.55rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-top:.6rem;opacity:.8}
+    .copy-btn{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:.55rem .9rem;display:flex;align-items:center;justify-content:center;gap:.4rem;color:rgba(255,255,255,.4);font-family:var(--ff-m);font-size:.56rem;letter-spacing:.1em;text-transform:uppercase;transition:background .2s,color .2s}
+    .copy-btn:hover{background:rgba(26,201,122,.12);color:var(--accent)}
+    .toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(10px);background:var(--text);color:#fff;border:1px solid var(--accent);padding:.65rem 1.4rem;border-radius:100px;font-family:var(--ff-m);font-size:.62rem;letter-spacing:.08em;opacity:0;transition:opacity .25s,transform .25s;z-index:9000;pointer-events:none}
+    .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+    footer{background:var(--text);padding:1.5rem clamp(1.5rem,5vw,4.5rem);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;border-top:1px solid rgba(255,255,255,.06);font-family:var(--ff-m);font-size:.55rem;letter-spacing:.08em;color:rgba(255,255,255,.2)}
+
+    /* ── Project Detail Overlay ── */
+    .detail-overlay{position:fixed;inset:0;z-index:500;background:var(--bg);overflow-y:auto;transform:translateX(100%);transition:transform .45s cubic-bezier(.4,0,.2,1)}
+    .detail-overlay.open{transform:translateX(0)}
+    .detail-back{position:sticky;top:0;z-index:10;background:rgba(242,246,243,.93);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:.9rem clamp(1.5rem,5vw,4.5rem);display:flex;align-items:center;gap:.75rem}
+    .back-btn{font-family:var(--ff-m);font-size:.62rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-mid);background:none;border:1.5px solid var(--border);padding:.5rem 1.1rem;border-radius:6px;display:flex;align-items:center;gap:.4rem;transition:color .2s,border-color .2s}
+    .back-btn:hover{color:var(--accent-txt);border-color:var(--accent)}
+    .back-crumb{font-family:var(--ff-m);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-light)}
+    .back-crumb .sep{margin:0 .4rem;opacity:.4}
+    .back-crumb .cur{color:var(--text-mid)}
+
+    .detail-hero-img{width:100%;height:clamp(220px,38vh,480px);object-fit:cover;object-position:center;display:block}
+    .detail-body{max-width:900px;margin:0 auto;padding:3.5rem clamp(1.5rem,5vw,4.5rem) 6rem}
+    .detail-meta{display:flex;flex-wrap:wrap;gap:.6rem;margin-bottom:1.5rem}
+    .detail-meta-pill{font-family:var(--ff-m);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;padding:.3rem .8rem;border-radius:100px;border:1px solid var(--border);color:var(--text-mid)}
+    .detail-meta-pill.green{background:var(--accent-dim);border-color:rgba(26,201,122,.3);color:var(--accent-txt)}
+    .detail-title{font-family:var(--ff-d);font-size:clamp(2rem,5vw,3.5rem);font-weight:800;letter-spacing:-.035em;line-height:.95;color:var(--text);margin-bottom:.75rem}
+    .detail-tagline{font-size:1.1rem;color:var(--text-mid);line-height:1.65;margin-bottom:2.5rem;font-weight:300}
+
+    .detail-section{margin-bottom:3rem}
+    .detail-section-title{font-family:var(--ff-d);font-size:1.3rem;font-weight:700;letter-spacing:-.025em;color:var(--text);margin-bottom:1.1rem;padding-bottom:.75rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.65rem}
+    .detail-section-title svg{width:18px;height:18px;color:var(--accent);flex-shrink:0}
+    .detail-para{font-size:.95rem;color:var(--text-mid);line-height:1.82;margin-bottom:.9rem}
+
+    /* process steps */
+    .process-steps{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-top:1rem}
+    .ps{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:1.25rem}
+    .ps-step{font-family:var(--ff-m);font-size:.6rem;letter-spacing:.1em;color:var(--accent-txt);margin-bottom:.5rem}
+    .ps-title{font-family:var(--ff-d);font-size:.95rem;font-weight:700;color:var(--text);margin-bottom:.4rem}
+    .ps-desc{font-size:.8rem;color:var(--text-mid);line-height:1.55}
+
+    /* feature cards */
+    .feat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1rem}
+    .feat-card{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:1.5rem}
+    .feat-title{font-family:var(--ff-d);font-size:1rem;font-weight:700;color:var(--text);margin-bottom:.45rem}
+    .feat-desc{font-size:.84rem;color:var(--text-mid);line-height:1.6}
+
+    /* image gallery */
+    .img-gallery{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.75rem}
+    .img-gallery.two{grid-template-columns:1fr 1fr}
+    .gallery-img{border-radius:10px;overflow:hidden;background:var(--bg-warm,#eee)}
+    .gallery-img img{width:100%;height:240px;object-fit:cover;object-position:top center;display:block;transition:transform .35s}
+    .gallery-img:hover img{transform:scale(1.04)}
+    .gallery-cap{font-family:var(--ff-m);font-size:.56rem;letter-spacing:.06em;color:var(--text-light);margin-top:.4rem;text-align:center}
+
+    /* PRD box */
+    .prd-box{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:2rem;border-left:4px solid var(--accent)}
+    .prd-feature{font-family:var(--ff-m);font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent-txt);margin-bottom:1.25rem}
+    .prd-block+.prd-block{margin-top:1.5rem;padding-top:1.5rem;border-top:1px solid var(--border)}
+    .prd-block-title{font-family:var(--ff-d);font-size:.88rem;font-weight:700;color:var(--text);margin-bottom:.75rem}
+    .us-row{padding:.65rem .9rem;border-radius:6px;background:var(--bg);margin-bottom:.4rem;font-size:.84rem;color:var(--text-mid);line-height:1.55}
+    .us-row span{font-weight:500;color:var(--text)}
+    .ac-list{list-style:none;display:flex;flex-direction:column;gap:.45rem}
+    .ac-list li{font-size:.84rem;color:var(--text-mid);padding-left:1.2rem;position:relative;line-height:1.55}
+    .ac-list li::before{content:'✓';position:absolute;left:0;color:var(--accent);font-size:.8rem}
+    .prd-meta{display:flex;gap:1.5rem;margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border)}
+    .prd-meta-item{display:flex;flex-direction:column;gap:.2rem}
+    .prd-meta-label{font-family:var(--ff-m);font-size:.54rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-light)}
+    .prd-meta-val{font-family:var(--ff-m);font-size:.7rem;font-weight:700;color:var(--accent-txt)}
+
+    /* impact */
+    .impact-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:1rem}
+    .impact-card{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:1.25rem 1rem;text-align:center}
+    .impact-val{font-family:var(--ff-d);font-size:1.8rem;font-weight:800;letter-spacing:-.03em;color:var(--accent);line-height:1}
+    .impact-lbl{font-family:var(--ff-m);font-size:.52rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-light);margin-top:.35rem}
+
+    /* tech tags */
+    .tech-tags{display:flex;flex-wrap:wrap;gap:.5rem}
+    .tech-tag{font-family:var(--ff-m);font-size:.6rem;letter-spacing:.06em;padding:.3rem .8rem;border-radius:100px;background:var(--accent-dim);border:1px solid rgba(26,201,122,.25);color:var(--accent-txt)}
+
+    @keyframes riseUp{from{opacity:0;transform:translateY(26px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+    @media(max-width:1100px){
+      .proj-grid-full{grid-template-columns:repeat(2,1fr)}
+    }
+    @media(max-width:960px){
+      #hero{grid-template-columns:1fr;padding-top:8rem}
+      .hero-right{height:280px;min-height:240px}
+      .about-grid{grid-template-columns:1fr;gap:2.5rem}
+      .proj-grid-full{grid-template-columns:repeat(2,1fr)}
+      .skills-grid{grid-template-columns:1fr 1fr}
+      .c-cards{grid-template-columns:repeat(3,1fr)}
+      .process-steps{grid-template-columns:repeat(2,1fr)}
+      .preview-row{grid-template-columns:3rem 1fr auto}
+      .pre-tags{display:none}
+    }
+    @media(max-width:640px){
+      .edu-grid{grid-template-columns:1fr}
+      .skills-grid{grid-template-columns:1fr}
+      .proj-grid-full{grid-template-columns:1fr}
+      .c-cards{grid-template-columns:1fr}
+      .feat-grid{grid-template-columns:1fr}
+      .img-gallery,.img-gallery.two{grid-template-columns:1fr}
+      .process-steps{grid-template-columns:1fr 1fr}
+      .hero-stats{gap:0}
+      .h-stat{padding-right:1.2rem;margin-right:1.2rem}
+      .nav-links li:not(:last-child){display:none}
+      .impact-grid{grid-template-columns:repeat(3,1fr)}
+    }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useRef } = React;
+
+/* ================================================================
+   ✏️  MODULE 1 · EDITABLE CONTENT
+   All text, links, and data you'll want to update are here.
+   Search for ✏️ to jump to each editable field.
+   ================================================================ */
+
+/* ── Icons ── */
+const Ico = ({ d, fill }) => (
+  <svg viewBox="0 0 24 24" fill={fill?"currentColor":"none"} stroke={fill?"none":"currentColor"} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    {Array.isArray(d) ? d.map((p,i) => <path key={i} d={p}/>) : <path d={d}/>}
+  </svg>
+);
+const IcoBrain = () => <Ico d={["M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 4.44-1.66Z","M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-4.44-1.66Z"]}/>;
+const IcoLayers = () => <Ico d={["M12 2 2 7l10 5 10-5-10-5z","M2 17l10 5 10-5","M2 12l10 5 10-5"]}/>;
+const IcoPhone2 = () => <Ico d="M12 18h.01M8 21h8a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2z"/>;
+const IcoCloud = () => <Ico d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/>;
+const IcoCar = () => <Ico d={["M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v9a2 2 0 0 1-2 2h-3","M7.5 17.5m-2.5 0a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0-5 0","M17.5 17.5m-2.5 0a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0-5 0"]}/>;
+const IcoTrend = () => <Ico d={["M23 6 13.5 15.5 8.5 10.5 1 18","M17 6h6v6"]}/>;
+const IcoEmail = () => <Ico d={["M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z","M22,6 12,13 2,6"]}/>;
+const IcoPhoneC = () => <Ico d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.18h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9a16 16 0 0 0 6.29 6.29l.82-.82a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>;
+const IcoWA = () => <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>;
+const IcoLI = () => <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>;
+const IcoTarget = () => <Ico d={["M22 12h-4","M6 12H2","M12 2v4","M12 18v4","M20 12a8 8 0 1 1-16 0 8 8 0 0 1 16 0z","M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"]}/>;
+const IcoFlag = () => <Ico d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1zM4 22v-7"/>;
+const IcoCog = () => <Ico d={["M12 15a3 3 0 1 1 0-6 3 3 0 0 1 0 6z","M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"]}/>;
+const IcoZap = () => <Ico d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/>;
+const IcoStar = () => <Ico d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>;
+
+/* ================================================================
+   ✏️  HERO — Floating keyword bubbles
+   Add / remove items freely. cls options:
+     "kw-green"  filled green  |  "kw-dark"  filled dark
+     "kw-white"  white card    |  "kw-mint"  light green tint
+   top / left are % positions inside the hero right panel.
+   ================================================================ */
+const KEYWORDS = [
+  {text:"AI Product Manager",cls:"kw-green",top:"7%",left:"4%",anim:"f3",dur:"5.8s",delay:"0s"},
+  {text:"System Thinking",cls:"kw-dark",top:"20%",left:"44%",anim:"f1",dur:"6.3s",delay:".5s"},
+  {text:"BLE · UWB",cls:"kw-white",top:"35%",left:"10%",anim:"f2",dur:"5.4s",delay:".9s"},
+  {text:"Data → Product",cls:"kw-mint",top:"50%",left:"52%",anim:"f4",dur:"7.1s",delay:".25s"},
+  {text:"SaaS Platforms",cls:"kw-dark",top:"64%",left:"6%",anim:"f5",dur:"6.6s",delay:"1.1s"},
+  {text:"Fintech",cls:"kw-white",top:"14%",left:"68%",anim:"f1",dur:"5.1s",delay:".65s"},
+  {text:"Smart Mobility",cls:"kw-mint",top:"75%",left:"40%",anim:"f6",dur:"6.9s",delay:".35s"},
+  {text:"Cross-functional",cls:"kw-white",top:"43%",left:"70%",anim:"f3",dur:"5.7s",delay:"1.3s"},
+  {text:"End-to-End Delivery",cls:"kw-dark",top:"86%",left:"12%",anim:"f2",dur:"6.2s",delay:".75s"},
+  {text:"Transformer · LLM",cls:"kw-mint",top:"28%",left:"28%",anim:"f4",dur:"7.3s",delay:"1.4s"},
+];
+
+/* ================================================================
+   ✏️  PROJECTS — Card list (appears in Projects section)
+   id must match the key in PROJECT_DETAILS below.
+   img: picsum seed for placeholder — swap with real screenshot:
+        img: "./images/project1.png"
+   badge: the green metric badge on the card.
+   ================================================================ */
+const PROJECTS = [
+  {id:"01",Icon:IcoCloud,    img:"saas_ui_dash",  title:"Parking Management SaaS",     co:"Xingji Technology",     desc:"Cloud platform digitising B2B parking operations — real-time occupancy, IoT lock control, AI dispute resolution, and multi-tenant billing.",         badge:"+40% Efficiency",  tags:["SaaS","B2B","AI","IoT"]},
+  {id:"02",Icon:IcoPhone2,   img:"mobile_app_ui", title:"ParkingPilot App",            co:"Xingji Technology",     desc:"Consumer smart parking app with AI-assisted search & ranking, full order lifecycle management, and seamless cashless payment.",                      badge:"AI Recommendation", tags:["ToC","AI","Payments"]},
+  {id:"03",Icon:IcoCar,      img:"auto_tech_ble", title:"PEPS Smart Digital Car Key",  co:"NIO Inc.",              desc:"BLE & UWB passive entry system across 100K+ NIO vehicles. Millimeter-level positioning via multi-signal fusion — contributed to >$50M in sales.",   badge:">$50M Impact",     tags:["Automotive","BLE","UWB"]},
+  {id:"04",Icon:IcoTrend,    img:"fintech_route",   title:"Dynamic Routing",              co:"Shopee — Monee Credit",  desc:"Redesigned credit fund allocation from static rules to a real-time, performance-signal-driven routing framework across 4 markets.",                   badge:"Multi-market",       tags:["Fintech","Data","Credit"]},
+  {id:"05",Icon:IcoPhone2,   img:"./img/tingya/hero.png",  title:"停鸭 Smart Parking Platform",  co:"Xingji — HarmonyOS Geekathon 2023", desc:"HarmonyOS-native app connecting idle parking space owners with drivers. AI-powered recommendations, BLE IoT lock control, and atomic desktop service cards — competition finalist.", badge:"2023 Geekathon",    tags:["HarmonyOS","IoT","AI","B2C/B2B"]},
+];
+
+/* ================================================================
+   ✏️  PROJECT DETAILS — Full content for each detail page
+   Each key ("01"–"04") must match an id in PROJECTS above.
+   heroImg: top banner image URL (replace with real screenshot)
+   images[]: gallery images inside the detail page
+   prd: PRD excerpt — user stories, acceptance criteria
+   impact[]: the metric cards at the bottom (v = value, l = label)
+   ================================================================ */
+const PROJECT_DETAILS = {
+  "01":{
+    heroImg:"https://picsum.photos/seed/saas_hero/1200/500",
+    title:"Parking Management SaaS Platform",
+    tagline:"From manual operations to cloud-powered parking efficiency",
+    period:"Aug 2022 – Jul 2024",company:"Xingji Technology (Shanghai) Co., Ltd.",role:"Product Manager",
+    tags:["SaaS","B2B","Cloud","AI","IoT"],
+    overview:"Led end-to-end product design and delivery of a cloud-based Parking Management SaaS platform serving B2B clients across China. The platform digitised full operations — real-time occupancy tracking, IoT lock control, billing, and AI-assisted dispute resolution — replacing paper-based manual workflows.",
+    background:[
+      "Traditional parking lot management in China's tier-2/3 cities relied heavily on manual processes: paper ticket systems, manual headcounts, and end-of-day cash reconciliation. Operators managing multiple sites had zero real-time visibility.",
+      "Revenue leakage was estimated at 15–20% due to underpayment, dispute mishandling, and billing errors. Staffing costs were high, and B2B clients were increasingly requesting digital solutions to stay competitive.",
+      "Our opportunity was to build a unified, modular SaaS platform that could be rapidly deployed across parking lots of varying scale, integrating with existing IoT hardware while introducing intelligent automation where it mattered most.",
+    ],
+    myRole:"As PM, I owned the product from 0→1: stakeholder requirement gathering, MVP scoping, sprint delivery, post-launch iteration, and client onboarding. I interfaced directly with B2B clients for requirement validation and collaborated with UI/UX, backend, and IoT engineering teams throughout.",
+    process:[
+      {step:"01",title:"Discovery",desc:"10+ on-site client interviews, operator shadowing sessions, competitive analysis of parking management solutions in CN/APAC"},
+      {step:"02",title:"MVP Scoping",desc:"Defined 4 core modules for V1: real-time occupancy, IoT lock control, billing engine, and user permission management"},
+      {step:"03",title:"Design & Build",desc:"Iterative sprints with weekly client demos; coordinated hardware-software interface specs with IoT team"},
+      {step:"04",title:"Scale & Iterate",desc:"Phased rollout to 5 pilot lots → 50+ lots; continuous iteration based on operator feedback and usage analytics"},
+    ],
+    features:[
+      {title:"Real-time Occupancy Dashboard",desc:"Live vehicle count per lot, space availability heatmap, historical trend analytics. Supports multi-lot view for operators managing 5+ sites simultaneously."},
+      {title:"Smart IoT Lock Control",desc:"Remote lock/unlock via web console and mobile app. Supports scheduled rules, manual override, and API integration with third-party hardware."},
+      {title:"AI-assisted Dispute Resolution",desc:"Rule-based + data-assisted decision engine generates preliminary suggestions for parking order disputes. Reduced average resolution time by 68%. Human override with full audit trail."},
+      {title:"Multi-tenant Billing Engine",desc:"Supports fixed, hourly, and subscription pricing. Handles complex edge cases: overtime parking, unpaid order escalation, partial refunds, and promotional discounts."},
+    ],
+    images:[
+      {src:"https://picsum.photos/seed/saas_dash/800/450",cap:"Operations dashboard — multi-lot real-time view"},
+      {src:"https://picsum.photos/seed/saas_mob/400/600",cap:"Mobile operator app"},
+      {src:"https://picsum.photos/seed/saas_data/800/400",cap:"Data analytics & reporting module"},
+    ],
+    prd:{
+      feature:"AI-assisted Dispute Resolution Module",
+      stories:[
+        {as:"Parking lot operator",want:"automatically receive a suggested resolution when a driver disputes a charge",so:"I can resolve disputes faster without manual investigation every time"},
+        {as:"System admin",want:"configure the confidence threshold above which disputes are auto-resolved",so:"I can balance automation efficiency with risk control"},
+        {as:"Compliance auditor",want:"view the full reasoning trail behind any auto-resolved dispute",so:"I can ensure transparency and meet audit requirements"},
+      ],
+      criteria:[
+        "System must generate a dispute suggestion within 3 seconds of submission",
+        "Suggestion must include a confidence score (0–100) and top 3 contributing factors",
+        "Disputes with confidence ≥ 85 may be auto-resolved; below 85 requires human review",
+        "All auto-resolved disputes logged with full decision trail, retained for 90-day audit",
+        "Operator can override any suggestion; override requires a mandatory reason field",
+      ],
+      priority:"P0 — Core V1 Feature",effort:"3 sprints (6 weeks)",
+    },
+    impact:[{v:"20+",l:"B2B Clients"},{v:"50+",l:"Parking Lots"},{v:"+40%",l:"Efficiency"},{v:"+25%",l:"Revenue"},{v:"−60%",l:"Manual Ops"},{v:"−68%",l:"Dispute Time"}],
+    tech:["React","Java Spring Boot","MySQL","MQTT (IoT)","Python Analytics","Figma","JIRA"],
+  },
+  "02":{
+    heroImg:"https://picsum.photos/seed/pilotapp/1200/500",
+    title:"ParkingPilot — Smart Parking App",
+    tagline:"AI-powered parking discovery from search to seamless payment",
+    period:"Aug 2022 – Mar 2024",company:"Xingji Technology (Shanghai) Co., Ltd.",role:"Product Manager",
+    tags:["Consumer App","AI","iOS","Android","Payments","Recommendation"],
+    overview:"Led product design and iteration of ParkingPilot, a consumer-facing smart parking app for iOS and Android. The app helps urban drivers discover, reserve, and pay for parking — powered by AI-assisted search ranking and a fully automated order-to-payment lifecycle.",
+    background:[
+      "Urban drivers in Chinese tier-2 cities spent an average of 15–20 minutes finding parking. Existing apps provided only static lot listings with no live data, forcing drivers to call ahead or drive around hoping for availability.",
+      "Core pain points: uncertainty about real-time availability, no way to compare prices in context, and a disconnected payment experience requiring manual interactions at the exit gate — three separate friction points in one journey.",
+      "ParkingPilot was designed to close this loop end-to-end — from pre-trip intent to post-exit payment — using real-time IoT data from our SaaS platform and AI-driven search to deliver a confident, frictionless experience.",
+    ],
+    myRole:"I owned the full consumer product: user journey definition, PRD for core features (search, reservation, order management, payment), usability testing with target users (urban drivers 25–45), and data-driven post-launch iteration.",
+    process:[
+      {step:"01",title:"User Research",desc:"Diary studies + in-car observation sessions with 15 urban drivers; identified 3 key anxiety points in the parking journey"},
+      {step:"02",title:"Journey Mapping",desc:"Mapped end-to-end parking journey from pre-trip intent to post-payment; identified 8 potential drop-off points"},
+      {step:"03",title:"Feature Design",desc:"Prioritised AI search ranking, reservation flow, and seamless payment as V1 core; deferred social and reviews features"},
+      {step:"04",title:"Measure & Iterate",desc:"Tracked booking conversion, search-to-reserve time, payment success rate; ran 3 A/B tests on ranking logic weights"},
+    ],
+    features:[
+      {title:"AI-assisted Search & Ranking",desc:"Ranks available lots using a weighted model: real-time availability (40%), walking distance (25%), price fit (20%), user preference history (15%). Re-scored every 60 seconds."},
+      {title:"Reservation & Order Lifecycle",desc:"Supports instant booking and advance reservation (up to 2h). Full order state machine with 7 states. Handles overtime extensions, early exit adjustments, and cancellation rules."},
+      {title:"Seamless Exit Payment",desc:"Exit-triggered automatic payment via pre-authorised card or Alipay/WeChat Pay. Handles retry logic for failures, unpaid order escalation, and partial refunds."},
+      {title:"Personalised Recommendation",desc:"Incorporates historical behaviour (frequent lots, price range, typical duration) to personalise results for returning users after ≥ 3 bookings."},
+    ],
+    images:[
+      {src:"https://picsum.photos/seed/pilot_search/400/700",cap:"Search & discovery screen"},
+      {src:"https://picsum.photos/seed/pilot_map/800/450",cap:"Map view with real-time availability"},
+      {src:"https://picsum.photos/seed/pilot_pay/400/700",cap:"Seamless exit payment flow"},
+    ],
+    prd:{
+      feature:"AI Search Ranking — Slot Requirements",
+      stories:[
+        {as:"First-time user searching near a destination",want:"see the most relevant available lots ranked by proximity and real-time availability",so:"I can quickly pick a spot with confidence"},
+        {as:"Regular commuter",want:"see my frequently used lot prominently surfaced when I search near my workplace",so:"I can re-book with minimal friction"},
+        {as:"Price-sensitive driver",want:"see clear price comparison across results without opening each detail",so:"I can make an informed decision quickly"},
+      ],
+      criteria:[
+        "Search results must load within 2 seconds (p95) for a given location query",
+        "Ranking model must incorporate real-time availability with < 60s data lag",
+        "Results must show: lot name, distance, current availability %, price/hour, walk time estimate",
+        "Personalisation signals apply only after user has ≥ 3 historical bookings",
+        "Each result must show a reason tag (e.g. 'Your frequent lot', 'Closest available')",
+      ],
+      priority:"P0 — Core Launch Feature",effort:"4 sprints (8 weeks)",
+    },
+    impact:[{v:"AI",l:"Search Ranking"},{v:"E2E",l:"Parking Journey"},{v:"+35%",l:"Booking Conversion"},{v:"<2s",l:"Search Load"},{v:"99.1%",l:"Payment Success"}],
+    tech:["iOS (Swift)","Android (Kotlin)","Python (Ranking)","REST APIs","Alipay/WeChat SDK","Figma"],
+  },
+  "03":{
+    heroImg:"https://picsum.photos/seed/nio_hero/1200/500",
+    title:"PEPS Smart Digital Car Key",
+    tagline:"Millimeter-precise keyless entry for 100K+ NIO vehicles",
+    period:"Jul 2021 – May 2022",company:"NIO Inc.",role:"Assistant Product Manager",
+    tags:["Automotive","BLE","UWB","IoT","Digital Key","Mobile"],
+    overview:"Led end-to-end product lifecycle for NIO's Passive Entry Passive Start (PEPS) Smart Digital Key — enabling seamless keyless vehicle entry and start using BLE and UWB positioning. Deployed across multiple NIO models with 100K+ vehicles and contributing >$50M in sales.",
+    background:[
+      "Physical keys create friction in the premium automotive experience. NIO's vision was to make the car an extension of the owner's digital life — the phone becomes the key, with no interaction required.",
+      "Early BLE-only solutions suffered from signal instability: false triggers when the phone was nearby but the driver wasn't approaching, delayed responses in signal-dense environments (parking garages), and excessive battery drain.",
+      "UWB (Ultra-Wideband) technology provided centimeter-level ranging capability, enabling a fundamentally more reliable passive entry experience — unlocking only when the driver is within 1m of the door handle and actively approaching.",
+    ],
+    myRole:"As APM, I led product definition: user stories, edge case mapping, competitive benchmarking, and cross-functional coordination across mobile (iOS/Android), vehicle firmware, BLE/UWB chip vendor, and QA teams. I specifically owned the triggering strategy logic and the OTA rollout validation framework.",
+    process:[
+      {step:"01",title:"Problem Analysis",desc:"Analysed 500+ user-reported false/missed trigger incidents from prior BLE-only system; categorised into 8 failure mode clusters"},
+      {step:"02",title:"Tech Evaluation",desc:"Evaluated UWB vs. enhanced BLE; defined accuracy, latency, and battery requirements with hardware and algorithm teams"},
+      {step:"03",title:"Logic Design",desc:"Designed multi-signal fusion rules: UWB range + BLE RSSI + phone motion sensor + user behaviour baseline"},
+      {step:"04",title:"Staged Rollout",desc:"OTA rollout: 5% → 20% → 100% with real-time monitoring of false trigger rate and manual override events"},
+    ],
+    features:[
+      {title:"Proximity-based Auto-unlock",desc:"Unlocks vehicle when authenticated phone is within 0.8–1.2m of the door handle, determined by UWB + BLE confirmation. Trigger latency < 300ms."},
+      {title:"Auto-lock on Departure",desc:"Locks vehicle when phone moves >5m from car for >3s, with motion sensor confirmation. Configurable per-user sensitivity preference."},
+      {title:"Multi-signal Fusion Engine",desc:"Fuses UWB distance, BLE RSSI, phone accelerometer/gyroscope, and environmental interference detection. Reduces false trigger rate by 73% vs. BLE-only baseline."},
+      {title:"OTA Configurable Parameters",desc:"Triggering logic parameters are OTA-configurable, enabling rapid iteration without app or firmware release cycles. Supports cohort-based A/B testing."},
+    ],
+    images:[
+      {src:"https://picsum.photos/seed/nio_car/800/450",cap:"PEPS system architecture overview"},
+      {src:"https://picsum.photos/seed/nio_app/400/700",cap:"NIO App digital key interface"},
+      {src:"https://picsum.photos/seed/nio_field/800/450",cap:"Field testing in multi-environment scenarios"},
+    ],
+    prd:{
+      feature:"Auto-unlock Triggering Strategy",
+      stories:[
+        {as:"NIO vehicle owner",want:"my car to unlock automatically when I approach with phone in my pocket",so:"I can open the door without taking out my phone"},
+        {as:"NIO vehicle owner",want:"the car NOT to unlock when my phone is nearby but I'm not approaching",so:"I avoid inadvertent unlocking in crowded parking lots"},
+        {as:"Multi-phone household",want:"to designate a primary phone for PEPS triggering",so:"I avoid conflicts when both my phone and partner's phone are present"},
+      ],
+      criteria:[
+        "Auto-unlock must trigger within 300ms of phone entering the 1.2m UWB trigger zone",
+        "False trigger rate must be < 0.5% in standard conditions (open parking lot)",
+        "False trigger rate must be < 2% in dense RF environments (underground garages)",
+        "Phone motion data must suppress triggers when phone is stationary for > 30s",
+        "Auto-lock must not trigger if a door is open or cabin occupancy is detected",
+        "All trigger events logged with full signal context for post-hoc analysis",
+      ],
+      priority:"P0 — Vehicle Launch Requirement",effort:"6 sprints (12 weeks) + 4-week staged OTA rollout",
+    },
+    impact:[{v:"100K+",l:"Vehicles"},{v:">$50M",l:"Sales Impact"},{v:"−73%",l:"False Triggers"},{v:"<300ms",l:"Unlock Latency"},{v:"mm",l:"UWB Accuracy"}],
+    tech:["BLE 5.0","UWB (IEEE 802.15.4z)","iOS / Android","Vehicle CAN Bus","OTA Framework","Python (Analysis)"],
+  },
+  "04":{
+    heroImg:"https://picsum.photos/seed/shopee_hero/1200/500",
+    title:"Dynamic Routing — Monee Credit",
+    tagline:"Intelligent capital allocation across Shopee's multi-market lending ecosystem",
+    period:"Jun 2025 – Dec 2025",company:"Shopee (Sea Group)",role:"Product Management Intern",
+    tags:["Fintech","Credit","Data-driven","BNPL","Multi-market"],
+    overview:"Supported the design and rollout of Dynamic Routing — a fund allocation framework that evolved Shopee Monee Credit's capital distribution from static, manually-configured rules to a real-time, performance-signal-driven system. Deployed across SG, VN, PH, and BR markets.",
+    background:[
+      "Shopee's Monee Credit operates a multi-funder lending model: multiple financial institutions provide capital to fund BNPL and Cash Loan products. Each funder has different costs, risk appetites, approval rates, and capacity constraints.",
+      "The legacy system allocated loan applications using static rules (e.g. 'Funder A gets 40% of SG BNPL volume'). This created misallocation — expensive funders serving volume that cheaper funders could handle — and any rebalancing required engineering work, causing week-long delays.",
+      "The Dynamic Routing initiative aimed to make fund allocation intelligent and self-adjusting: continuously optimising funder weights based on real-time performance signals while respecting business and compliance constraints.",
+    ],
+    myRole:"Supported the PM and designed the Dynamic Routing system: conducting stakeholder requirement analysis (business, risk, finance, compliance, engineering), mapping the routing decision framework, defining the 12 data input signals and configurable parameters, and coordinating with Dev and Data Science teams on implementation feasibility.",
+    process:[
+      {step:"01",title:"Stakeholder Mapping",desc:"Mapped requirements from 5 stakeholder groups; captured 40+ constraints and objectives across credit, risk, finance, compliance, and engineering"},
+      {step:"02",title:"Framework Design",desc:"Designed routing decision model: priority tiers, weight adjustment rules, override mechanisms, and fallback logic"},
+      {step:"03",title:"Data Pipeline Definition",desc:"Defined 12 input signals: cost of capital, utilisation rate, 7-day approval rate, portfolio risk score, and more"},
+      {step:"04",title:"Shadow Mode & Rollout",desc:"3-week shadow mode (decisions logged but not actioned), then phased live activation market by market"},
+    ],
+    features:[
+      {title:"Performance-signal Weight Adjustment",desc:"Funder allocation weights auto-adjust based on: funding cost, utilisation rate vs. capacity, rolling approval performance, and risk concentration. Recalculated every 4 hours."},
+      {title:"Business Rule Constraints",desc:"Routing respects hard constraints: min/max funder allocation %, market-specific regulatory limits, and strategic relationship commitments. Configurable without code deployment."},
+      {title:"Human Override & Circuit Breaker",desc:"Business team can manually override funder weights with a justification. Circuit breaker auto-reverts to previous weights if performance degrades beyond threshold within 24h of a change."},
+      {title:"Settlement & Reconciliation Traceability",desc:"Tracks each loan's funder attribution through the full repayment lifecycle. Generates daily reconciliation reports across markets for Finance and funder partner review."},
+    ],
+    images:[
+      {src:"https://picsum.photos/seed/routing_arch/800/450",cap:"Dynamic routing system architecture"},
+      {src:"https://picsum.photos/seed/routing_dash/800/400",cap:"Funder performance signal dashboard"},
+      {src:"https://picsum.photos/seed/routing_recon/800/400",cap:"Settlement & reconciliation flow"},
+    ],
+    prd:{
+      feature:"Dynamic Weight Adjustment Engine — Core Requirements",
+      stories:[
+        {as:"Credit business manager",want:"funder allocation weights to auto-adjust when a funder's approval rate drops significantly",so:"I don't need to manually rebalance every time market conditions shift"},
+        {as:"Risk manager",want:"to set a maximum concentration limit per funder",so:"we don't become over-reliant on any single capital source"},
+        {as:"Business analyst",want:"to see a full history of weight changes with the triggering signals",so:"I can audit and explain allocation decisions to leadership and regulators"},
+      ],
+      criteria:[
+        "Weight recalculation must run every 4 hours using data no older than 30 minutes",
+        "Any funder's weight must stay within configured min/max bounds at all times",
+        "Weight changes exceeding 15% in a single recalculation must trigger a business team alert",
+        "Full audit log maintained: previous weight, new weight, timestamp, top 3 contributing signals",
+        "Manual override by authorised user must take effect within 5 minutes",
+        "Circuit breaker must auto-revert if performance drops >10% vs. 7-day baseline within 24h of change",
+      ],
+      priority:"P0 — Strategic Initiative",effort:"4 sprints (8 weeks) + 3-week shadow mode validation",
+    },
+    impact:[{v:"4",l:"Markets"},{v:"12",l:"Signal Inputs"},{v:"4h",l:"Recalc Cycle"},{v:"Auto",l:"Weight Adjust"},{v:"↓",l:"Manual Overhead"}],
+    tech:["Python (Data Pipeline)","SQL","Rule Engine","Internal Credit Platform","Confluence","JIRA"],
+  },
+
+  // ✏️ Project 05 — 停鸭 Smart Parking Platform
+  "05":{
+    heroImg:"./img/tingya/hero.png",
+    title:"停鸭 — Smart Parking Platform",
+    tagline:"Connecting idle parking spaces with drivers, powered by HarmonyOS atomic services",
+    period:"2023",company:"Xingji Technology (Shanghai) Co., Ltd.",role:"Product Manager",
+    tags:["HarmonyOS","IoT","AI","B2C","B2B","Smart Mobility"],
+    overview:"Led product strategy and design for 停鸭, a HarmonyOS-native smart parking platform developed for the 2023 Huawei HarmonyOS Geekathon (极客马拉松). The platform tackles China's 199-million parking space deficit by connecting idle private spaces with drivers through AI recommendations, BLE IoT lock control, and frictionless HarmonyOS atomic desktop service cards — serving both space owners and car owners in a two-sided marketplace.",
+    background:[
+      "China had 426 million registered vehicles in 2023 but only an estimated 151 million parking spaces — a deficit of approximately 199 million spaces, with a vehicle-to-space ratio of just 0.46:1. The gap is especially acute in residential and commercial areas where private spaces sit idle for hours each day.",
+      "Existing solutions were fragmented: parking apps showed static lot listings with no real-time data, private space owners had no way to monetize idle hours, and drivers faced information asymmetry that caused significant time loss and traffic congestion around popular destinations.",
+      "The Geekathon brief challenged teams to leverage HarmonyOS-specific capabilities — atomic services (元服务), distributed architecture, and ArkUI multi-device deployment — to solve a real urban problem. 停鸭 was designed to win on technical depth while delivering a genuinely user-centered solution.",
+    ],
+    myRole:"As Product Director, I defined the product vision, framed the two-sided marketplace model, led the user research, authored all PRDs and feature specs, and coordinated the cross-functional team of 5 (CTO, senior UX designer, full-stack engineer, and industry investment advisor) from kick-off through the live competition demo.",
+    process:[
+      {step:"01",title:"Market Research",desc:"Analysed China parking deficit data; interviewed 20+ drivers and 10+ private space owners to surface key pain points: information asymmetry, idle capacity waste, and safety concerns around space sharing"},
+      {step:"02",title:"Platform Design",desc:"Defined two-sided marketplace: space owner flows (onboarding, smart scheduling, revenue tracking) + driver flows (AI search, one-tap lock release, status monitoring). Mapped 12 key user journeys"},
+      {step:"03",title:"HarmonyOS Architecture",desc:"Scoped HarmonyOS-native features: atomic desktop cards for instant access without app launch; BLE pre-loading for <200ms lock response; distributed data sync for real-time space availability"},
+      {step:"04",title:"Competition Build",desc:"Delivered working HAP package, design prototype, demo videos (BLE lock, phone screen, cloud server control), and full product documentation within competition timeline"},
+    ],
+    features:[
+      {title:"Atomic Desktop Service Cards (元服务卡片)",desc:"4×2 and 4×4 HarmonyOS home-screen cards give instant access to space status, lock control, and AI recommendations — without opening the app. Eliminates the biggest UX friction point in the parking journey."},
+      {title:"AI-powered Parking Recommendation",desc:"Aggregates real-time availability, walking distance, pricing, and user preference history to surface the best available space. Recommendations recalculate as the driver approaches."},
+      {title:"BLE IoT Smart Lock Control",desc:"HarmonyOS pre-loads Bluetooth device drivers before the user reaches the space, enabling sub-200ms lock response. Multi-layer security protects unauthorised access. Supports phone, car infotainment, and tablet simultaneously via multi-device collaboration."},
+      {title:"Space Owner Revenue Dashboard",desc:"Owners set sharing time slots; AI auto-optimises based on historical occupancy patterns. Real-time revenue tracking, order tracing, and curve analytics give owners full visibility into their passive income."},
+    ],
+    images:[
+      {src:"./img/tingya/ai_search.png", cap:"AI parking radar — 328 available spaces nearby, one-tap view"},
+      {src:"./img/tingya/ai_lock.png",   cap:"AI smart lock selection — shared & available spaces at a glance"},
+      {src:"./img/tingya/carscreen.png", cap:"Multi-device: 停鸭 atomic card on car infotainment screen"},
+    ],
+    prd:{
+      feature:"Atomic Desktop Card — Real-time Space Status & One-tap Lock Control",
+      stories:[
+        {as:"Driver arriving at a reserved space",want:"to release the parking lock directly from my home screen card without unlocking my phone and opening an app",so:"I can park quickly and safely without distracted phone handling"},
+        {as:"Parking space owner",want:"to see my current space status and today's revenue at a glance on my home screen",so:"I can monitor my listing passively without opening the app every time"},
+        {as:"Driver searching for nearby parking",want:"to see AI-recommended available spaces on my desktop card when I open my phone near a destination",so:"I can make a parking decision in seconds with no search friction"},
+      ],
+      criteria:[
+        "Desktop card must reflect real-time space status with < 30s data lag via distributed data sync",
+        "Lock control action from card must complete (BLE trigger → lock response) within 200ms",
+        "Card must support both 4×2 (compact) and 4×4 (full) layout sizes on HarmonyOS home screen",
+        "AI recommendation on card must update automatically when phone location changes by > 500m",
+        "Card interactions must function without full app launch — no app install required for first-time card users",
+        "All lock events logged with device ID, timestamp, and user identity for security audit trail",
+      ],
+      priority:"P0 — Core Competition Differentiator",effort:"Delivered within 72-hour Geekathon sprint",
+    },
+    impact:[{v:"199M",l:"Space Deficit Addressed"},{v:"2-sided",l:"Marketplace"},{v:"<200ms",l:"Lock Response"},{v:"No App",l:"Launch Needed"},{v:"3",l:"Revenue Models"},{v:"2023",l:"Geekathon Finalist"}],
+    tech:["HarmonyOS (ArkUI)","Atomic Services (元服务)","BLE 5.0","Distributed Data Mgmt","Cloud Server","Figma"],
+  },
+};
+
+/* ================================================================
+   ✏️  EXPERIENCE — Work timeline entries (newest first)
+   co: company name  |  role: job title  |  period / loc: dates & city
+   bullets: bullet points (each starts with →)
+   tags: pill tags shown at the bottom of each entry
+   ================================================================ */
+const EXP = [
+  {co:"Shopee",role:"Product Management Intern — Monee Credit",period:"Jun 2025 – Dec 2025",loc:"Singapore",
+   bullets:["Managed credit funding platforms (BNPL, Buyer & Seller Cash Loan) across SG, VN, PH & BR","Designed Dynamic Routing: evolved fund allocation from static rules to a data-driven framework with dynamic funder weight adjustment based on performance signals","Contributed to Settlement & Reconciliation Platform, improving cross-market fund flow transparency","Conducted data analysis on funding utilisation, partner performance & repayment behaviour"],
+   tags:["Fintech","Credit Platforms","Dynamic Routing","Data Analysis"]},
+  {co:"Xingji Technology",role:"Product Manager",period:"May 2022 – Aug 2024",loc:"Shanghai, China",
+   bullets:["Owned ToC smart parking app ParkingPilot: search, reservation, order lifecycle & cashless payment","Introduced AI-assisted parking recommendation based on user intent, behaviour & real-time availability","Led ToB Parking SaaS platform: 20+ clients, 50+ lots, +40% efficiency & +25% revenue","Designed AI-assisted dispute automation module with rule-based + human-in-the-loop workflows"],
+   tags:["Consumer App","SaaS","AI Features","IoT"]},
+  {co:"NIO Inc.",role:"Assistant Product Manager",period:"Jul 2021 – May 2022",loc:"Shanghai, China",
+   bullets:["Owned vehicle control & mobile digital key features in NIO App for 100K+ vehicles","Led optimisation of BLE/UWB digital key triggering (auto-unlock/lock) — contributed to >$50M in sales","Designed decision rules combining Bluetooth signal strength, positioning confidence & user behaviour","Collaborated with 20+ engineers & vendors to achieve millimeter-level UWB positioning accuracy"],
+   tags:["Automotive","BLE/UWB","Digital Key","System Design"]},
+  {co:"NIO Inc.",role:"Software Engineer Intern",period:"May 2020 – Jun 2021",loc:"Shanghai, China",
+   bullets:["Developed mobile digital key & vehicle control modules with BLE communication","Supported near-field positioning using Kalman Filters and ML-based signal processing","Performed data analysis & visualisation in Python to evaluate positioning performance"],
+   tags:["BLE","Python","Signal Processing","Mobile Dev"]},
+];
+
+/* ================================================================
+   ✏️  SKILLS — Three skill group columns
+   group: column heading  |  items: bullet list inside
+   ================================================================ */
+const SKILLS = [
+  {group:"Product",items:["Product Roadmap & Prioritisation","PRD & User Stories","System Design & SDLC","Cross-functional Leadership","Agile / Sprint Planning","KPI Tracking & OKRs"]},
+  {group:"AI & Technology",items:["AI Feature Design & Scoping","Transformer Architecture Fundamentals","Data-to-Decision Pipelines","BLE / UWB System Design","Rule-based + ML Decision Logic","Human-in-the-loop Workflows"]},
+  {group:"Data & Tools",items:["SQL & Python Analytics","Java (Proficient)","Figma & Prototyping","JIRA & Confluence","Xmind","Google Suite / Office"]},
+];
+
+/* ================================================================
+   ✏️  CONTACTS — Cards shown in the contact section
+   value: displayed text  |  href: the link target
+   copy: text that gets copied to clipboard on "Copy" click
+   To add WhatsApp back: {Icon:IcoWA, label:"WhatsApp", value:"+65 ...",
+     href:"https://wa.me/65...", action:"Chat on WhatsApp", copy:"+65..."}
+   ================================================================ */
+const CONTACTS = [
+  {Icon:IcoEmail,  label:"Email",    value:"ChloeKong599@gmail.com",                              href:"mailto:ChloeKong599@gmail.com",                               action:"Send email",       copy:"ChloeKong599@gmail.com"},
+  {Icon:IcoPhoneC, label:"Phone",    value:"+65 9611 5522",                                       href:"tel:+6596115522",                                            action:"Call now",          copy:"+6596115522"},
+  {Icon:IcoLI,     label:"LinkedIn", value:"xinyi-kong-435145364",                                href:"https://www.linkedin.com/in/xinyi-kong-435145364/",           action:"View profile",      copy:"linkedin.com/in/xinyi-kong-435145364"},
+];
+
+/* ================================================================
+   ⚙️  MODULE 2 · COMPONENTS  (layout & UI — edit with care)
+   ================================================================ */
+
+/* ── Cursor ── */
+function Cursor() {
+  const dot=useRef(null),ring=useRef(null),mp=useRef({x:0,y:0}),rp=useRef({x:0,y:0}),raf=useRef(null);
+  useEffect(()=>{
+    const mv=e=>{mp.current={x:e.clientX,y:e.clientY};if(dot.current){dot.current.style.left=e.clientX+'px';dot.current.style.top=e.clientY+'px';}};
+    const loop=()=>{rp.current.x+=(mp.current.x-rp.current.x)*.13;rp.current.y+=(mp.current.y-rp.current.y)*.13;if(ring.current){ring.current.style.left=rp.current.x+'px';ring.current.style.top=rp.current.y+'px';}raf.current=requestAnimationFrame(loop);};
+    window.addEventListener('mousemove',mv);raf.current=requestAnimationFrame(loop);
+    return()=>{window.removeEventListener('mousemove',mv);cancelAnimationFrame(raf.current);};
+  },[]);
+  return <><div ref={dot} className="cur-dot"/><div ref={ring} className="cur-ring"/></>;
+}
+
+/* ── Reveal hook ── */
+function useReveal() {
+  useEffect(()=>{
+    const obs=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');}),{threshold:.1,rootMargin:'0px 0px -36px 0px'});
+    document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+    return()=>obs.disconnect();
+  },[]);
+}
+
+/* ── Nav ──
+   ✏️  Edit nav link labels in the `links` array below.
+       To add a section: append {id:'section-id', l:'Label'} */
+function Nav({active}) {
+  const [sc,setSc]=useState(false),[prog,setProg]=useState(0);
+  useEffect(()=>{
+    const h=()=>{setSc(window.scrollY>60);const dh=document.documentElement.scrollHeight-window.innerHeight;setProg(dh>0?(window.scrollY/dh)*100:0);};
+    window.addEventListener('scroll',h);return()=>window.removeEventListener('scroll',h);
+  },[]);
+  const links=[{id:'about',l:'About'},{id:'experience',l:'Experience'},{id:'projects',l:'Projects'},{id:'skills',l:'Skills'}];
+  return <>
+    <div className="progress-bar" style={{width:`${prog}%`}}/>
+    <nav className={sc?'scrolled':''}>
+      <a href="#hero" className="nav-logo">XK<span className="dot">.</span></a>
+      <ul className="nav-links">
+        {links.map(({id,l})=><li key={id}><a href={`#${id}`} className={active===id?'active':''}>{l}</a></li>)}
+        <li><a href="#contact" className="nav-pill">Contact</a></li>
+      </ul>
+    </nav>
+  </>;
+}
+
+/* ── Hero ──
+   ✏️  Edit eyebrow, name, tagline, stats, and button text below. */
+function Hero() {
+  return (
+    <div id="hero">
+      <div className="hero-grid-bg"/><div className="hero-glow"/>
+      <div className="hero-left">
+        {/* ✏️ Eyebrow line under the logo */}
+        <div className="hero-eyebrow">AI Product Manager · Singapore</div>
+        {/* ✏️ Your name — first line plain, second line accented */}
+        <h1 className="hero-name">XINYI<br/><span className="acc">KONG</span><span className="dot">.</span></h1>
+        {/* ✏️ Hero tagline / one-liner */}
+        <p className="hero-tagline">I bridge AI, data, and user experience to ship products that create real, measurable impact — across fintech, automotive, and smart mobility.</p>
+        {/* ✏️ Three headline stats — edit v (value) and l (label) */}
+        <div className="hero-stats">
+          {[{v:"4+",l:"Years in Product"},{v:"100K+",l:"Users Impacted"},{v:">$50M",l:"Revenue Impact"}].map((s,i)=>(
+            <div className="h-stat" key={i}><span className="h-stat-val">{s.v}</span><span className="h-stat-lbl">{s.l}</span></div>
+          ))}
+        </div>
+        {/* ✏️ CTA buttons — edit text and href targets */}
+        <div className="hero-btns">
+          <a href="#experience" className="btn-solid">View Experience →</a>
+          <a href="#contact" className="btn-ghost">Say Hello</a>
+        </div>
+      </div>
+      <div className="hero-right">
+        {KEYWORDS.map((kw,i)=>(
+          <span key={i} className={`kw ${kw.cls}`} style={{top:kw.top,left:kw.left,animation:`${kw.anim} ${kw.dur} ${kw.delay} ease-in-out infinite`}}>{kw.text}</span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ── Project Preview Strip ── */
+function ProjectPreview({onDetail}) {
+  return (
+    <div id="preview">
+      <div className="preview-inner">
+        <div className="preview-header">
+          <div>
+            <div className="preview-label">Selected Work</div>
+            <div className="preview-title">What I've <span className="acc">shipped</span></div>
+          </div>
+        </div>
+        <div className="preview-rows">
+          {PROJECTS.map((p,i)=>(
+            <div className="preview-row" key={i} onClick={()=>onDetail(p.id)}>
+              <span className="pre-num">{p.id}</span>
+              <div className="pre-info">
+                <span className="pre-name">{p.title}</span>
+                <span className="pre-co">{p.co}</span>
+              </div>
+              <div className="pre-tags">{p.tags.slice(0,3).map(t=><span className="pre-tag" key={t}>{t}</span>)}</div>
+              <span className="pre-arrow">→</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── About ──
+   ✏️  Edit bio paragraphs and the three feature cards below. */
+function About() {
+  return <>
+    <hr className="divider"/>
+    <section id="about">
+      <div className="s-wrap">
+        <div className="s-eyebrow">About</div>
+        <div className="about-grid">
+          <div>
+            <h2 className="s-title">System thinker.<br/><span className="acc">Product builder.</span></h2>
+            {/* ✏️ About bio — edit paragraphs freely */}
+            <div className="about-bio reveal">
+              <p>I'm a <strong>hands-on Product Manager</strong> with a Computer Science foundation and a deep interest in AI. I have strong system thinking and am good at breaking down business goals, technical capabilities, and data into <strong>clear, executable product solutions.</strong></p>
+              <p>I have a solid understanding of AI fundamentals — including Transformer architectures and end-to-end data-to-decision workflows — and the ability to <strong>translate them into real, deliverable products.</strong></p>
+              <p>My experience spans AI-driven products, consumer mobile apps, and SaaS platforms across automotive tech, smart mobility, and fintech. I enjoy collaborating with diverse teams to build products that <strong>create real impact.</strong></p>
+              <p style={{marginTop:'1.25rem'}}>Currently pursuing M.Sc. Project Management at <strong>Nanyang Technological University, Singapore.</strong></p>
+            </div>
+          </div>
+          {/* ✏️ Three feature cards — title + desc */}
+          <div className="about-cards">
+            {[
+              {Icon:IcoBrain,  title:"AI Product Design",        desc:"Transformer fundamentals, data-to-decision pipelines, AI-assisted ranking & recommendation, human-in-the-loop design."},
+              {Icon:IcoLayers, title:"SaaS & Platform Products", desc:"B2B platform architecture, modular system design, cross-market scalability, automation-first workflows."},
+              {Icon:IcoPhone2, title:"Consumer Apps & IoT",      desc:"End-to-end user journeys, BLE/UWB positioning systems, mobile-first design, real-time state management."},
+            ].map((c,i)=>(
+              <div className="a-card reveal" key={i} style={{transitionDelay:`${i*.1}s`}}>
+                <div className="a-card-icon"><c.Icon/></div>
+                <div><div className="a-title">{c.title}</div><div className="a-desc">{c.desc}</div></div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  </>;
+}
+
+/* ── Experience ── */
+function Experience() {
+  return <>
+    <hr className="divider"/>
+    <section id="experience">
+      <div className="s-wrap">
+        <div className="s-eyebrow">Experience</div>
+        <h2 className="s-title">Where I've <span className="acc">built.</span></h2>
+        <div className="timeline">
+          {EXP.map((e,i)=>(
+            <div className="tl-item reveal" key={i} style={{transitionDelay:`${i*.12}s`}}>
+              <div className="tl-dot"/>
+              <div className="tl-meta">{e.period} · {e.loc}</div>
+              <div className="tl-co">{e.co}</div>
+              <div className="tl-role">{e.role}</div>
+              <ul className="tl-list">{e.bullets.map((b,j)=><li key={j}>{b}</li>)}</ul>
+              <div className="tl-tags">{e.tags.map(t=><span className="tl-tag" key={t}>{t}</span>)}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  </>;
+}
+
+/* ── Projects (full) ── */
+function ProjectsFull({onDetail}) {
+  return <>
+    <hr className="divider"/>
+    <section id="projects">
+      <div className="s-wrap">
+        <div className="s-eyebrow">Projects</div>
+        <h2 className="s-title">What I've <span className="acc">shipped.</span></h2>
+        <div className="proj-grid-full">
+          {PROJECTS.map((p,i)=>(
+            <div className="proj-card-full reveal" key={i} style={{transitionDelay:`${i*.1}s`}}>
+              <div className="pcf-img">
+                <img src={p.img.startsWith('.')||p.img.startsWith('/')?p.img:`https://picsum.photos/seed/${p.img}/640/340`} alt={p.title}/>
+                <span className="pcf-img-tag">{p.tags[0]}</span>
+              </div>
+              <div className="pcf-header">
+                <div>
+                  <div className="pcf-num">{p.id}</div>
+                  <div className="pcf-title">{p.title}</div>
+                  <div className="pcf-co">{p.co}</div>
+                </div>
+                <div className="pcf-icon"><p.Icon/></div>
+              </div>
+              <div className="pcf-desc">{p.desc}</div>
+              <div className="pcf-footer">
+                <div style={{display:'flex',gap:'.6rem',alignItems:'center',flexWrap:'wrap'}}>
+                  <span className="pcf-badge">{p.badge}</span>
+                  <div className="pcf-tags">{p.tags.map(t=><span className="pcf-tag" key={t}>{t}</span>)}</div>
+                </div>
+                <button className="btn-detail" onClick={()=>onDetail(p.id)}>More Details <span className="d-arr">→</span></button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  </>;
+}
+
+/* ── Photo Carousel ── */
+/* ================================================================
+   ✏️  PHOTO WALL — Carousel photos (add as many as you like)
+   To use a real photo, replace the picsum URL in the img tag
+   inside PhotoWall with a local path, e.g. "./photos/team.jpg"
+   or just change the seed string to get a different placeholder.
+   cap: caption shown on hover.
+   ================================================================ */
+const PHOTOS = [
+  {seed:"life01",w:640,h:440,cap:"Product sprint session"},
+  {seed:"life02",w:640,h:440,cap:"Team collaboration"},
+  {seed:"life03",w:640,h:440,cap:"Design review"},
+  {seed:"life04",w:640,h:440,cap:"Data analysis workshop"},
+  {seed:"life05",w:640,h:440,cap:"NIO team outing"},
+  {seed:"life06",w:640,h:440,cap:"Product launch"},
+  {seed:"life07",w:640,h:440,cap:"Cross-team workshop"},
+  {seed:"life08",w:640,h:440,cap:"Conference day"},
+];
+const SLIDE_W=320, SLIDE_GAP=14, SLIDE_STEP=334;
+
+function PhotoWall() {
+  const CLONE=3;
+  const N=PHOTOS.length;
+  const extended=[...PHOTOS.slice(-CLONE),...PHOTOS,...PHOTOS.slice(0,CLONE)];
+
+  const posRef=useRef(CLONE);
+  const busyRef=useRef(false);
+  const [dotIdx,setDotIdx]=useState(0);
+  const trackRef=useRef(null);
+  const autoRef=useRef(null);
+  const fnRef=useRef(null);
+
+  const setTrack=(pos,animate)=>{
+    if(!trackRef.current) return;
+    trackRef.current.style.transition=animate?'transform .52s cubic-bezier(.4,0,.2,1)':'none';
+    if(!animate) void trackRef.current.offsetWidth; // force reflow
+    trackRef.current.style.transform=`translateX(-${pos*SLIDE_STEP}px)`;
+  };
+
+  fnRef.current=(dir)=>{
+    if(busyRef.current) return;
+    busyRef.current=true;
+    const newPos=posRef.current+dir;
+    posRef.current=newPos;
+    setDotIdx(((newPos-CLONE)%N+N)%N);
+    setTrack(newPos,true);
+    setTimeout(()=>{
+      const cur=posRef.current;
+      let fp=cur;
+      if(cur>=CLONE+N) fp=CLONE+(cur-CLONE)%N;
+      else if(cur<CLONE) fp=CLONE+N+(cur-CLONE);
+      if(fp!==cur){ posRef.current=fp; setTrack(fp,false); }
+      busyRef.current=false;
+    },560);
+  };
+
+  const resetAuto=()=>{
+    clearInterval(autoRef.current);
+    autoRef.current=setInterval(()=>fnRef.current(1),4000);
+  };
+
+  useEffect(()=>{
+    setTrack(CLONE,false);
+    autoRef.current=setInterval(()=>fnRef.current(1),4000);
+    return()=>clearInterval(autoRef.current);
+  },[]);
+
+  return <>
+    <hr className="divider"/>
+    <section id="photos">
+      <div className="photos-header reveal">
+        <div>
+          <div className="s-eyebrow">Life at Work</div>
+          <h2 className="s-title" style={{marginBottom:0}}>Behind the <span className="acc">scenes</span></h2>
+        </div>
+        <div className="carousel-nav">
+          <button className="carousel-btn" onClick={()=>{fnRef.current(-1);resetAuto();}}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          <button className="carousel-btn" onClick={()=>{fnRef.current(1);resetAuto();}}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+        </div>
+      </div>
+      <div className="carousel-track-wrap">
+        <div className="carousel-track" ref={trackRef} style={{transform:`translateX(-${CLONE*SLIDE_STEP}px)`,transition:'none'}}>
+          {extended.map((p,i)=>(
+            <div key={i} className="photo-slide">
+              <img src={`https://picsum.photos/seed/${p.seed}/${p.w}/${p.h}`} alt={p.cap}/>
+              <div className="photo-slide-cap">{p.cap}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="carousel-dots">
+        {PHOTOS.map((_,i)=>(
+          <button key={i} className={`c-dot${i===dotIdx?' active':''}`} onClick={()=>{
+            if(busyRef.current) return;
+            busyRef.current=true;
+            posRef.current=CLONE+i; setDotIdx(i); setTrack(CLONE+i,true);
+            setTimeout(()=>{busyRef.current=false;},560);
+            resetAuto();
+          }}/>
+        ))}
+      </div>
+    </section>
+  </>;
+}
+
+/* ── Skills ──
+   ✏️  Edit languages, certifications, and education cards below.
+       Skill group data lives in the SKILLS array above. */
+function Skills() {
+  return <>
+    <hr className="divider"/>
+    <section id="skills">
+      <div className="s-wrap">
+        <div className="s-eyebrow">Skills</div>
+        <h2 className="s-title">How I <span className="acc">work.</span></h2>
+        <div className="skills-grid">
+          {SKILLS.map((sg,i)=>(
+            <div className="sg reveal" key={i} style={{transitionDelay:`${i*.1}s`}}>
+              <div className="sg-head">{sg.group}</div>
+              <ul className="sg-list">{sg.items.map(s=><li key={s}>{s}</li>)}</ul>
+            </div>
+          ))}
+        </div>
+        <div className="other-strip reveal">
+          <div className="other-head">Languages & Certifications</div>
+          <div className="other-tags">
+            {/* ✏️ Languages & certifications — add/remove strings */}
+            {['English','Mandarin','Cantonese','CCF CSP Certified','Computer Level II','3 Software Copyrights','1 Patent'].map(s=><span className="o-tag" key={s}>{s}</span>)}
+          </div>
+        </div>
+        <div style={{marginTop:'4rem'}}>
+          <div className="s-eyebrow" style={{marginBottom:'1.5rem'}}>Education</div>
+          {/* ✏️ Education entries — edit period, degree, school
+                logoUrl: Wikipedia SVG or any image URL; set null for text badge
+                abbr / logoColor / logoBg: controls the fallback text badge */}
+          <div className="edu-grid">
+            {[
+              {period:"Jan 2025 – Jun 2026",degree:"M.Sc. Project Management",school:"Nanyang Technological University · Singapore",
+               abbr:"NTU",logoColor:"#C8102E",logoBg:"#fff5f5",
+               logoUrl:"https://upload.wikimedia.org/wikipedia/en/f/f2/NTU_Logo.svg"},
+              {period:"Sep 2017 – Jun 2021",degree:"B.E. Computer Science & Technology",school:"Northeast Agricultural University · China",
+               abbr:"NEAU",logoColor:"#1B6B2F",logoBg:"#f0fff4",
+               logoUrl:null},
+            ].map((ed,i)=>(
+              <div className="edu-card reveal" key={i} style={{transitionDelay:`${i*.12}s`}}>
+                <div className="edu-card-top">
+                  <div>
+                    <div className="edu-period">{ed.period}</div>
+                    <div className="edu-degree">{ed.degree}</div>
+                    <div className="edu-school">{ed.school}</div>
+                  </div>
+                  {ed.logoUrl
+                    ? <img src={ed.logoUrl} alt={ed.abbr} className="edu-emblem" style={{background:ed.logoBg,padding:'7px',border:`2px solid ${ed.logoColor}22`}} onError={e=>{e.target.style.display='none';e.target.nextSibling.style.display='flex';}}/>
+                    : null}
+                  <div className="edu-emblem" style={{background:ed.logoBg,color:ed.logoColor,border:`2px solid ${ed.logoColor}44`,display:ed.logoUrl?'none':'flex'}}>{ed.abbr}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  </>;
+}
+
+/* ── Contact ── */
+function Contact() {
+  const [toast,setToast]=useState('');
+  const copy=(text,label)=>{navigator.clipboard.writeText(text).then(()=>{setToast(`${label} copied!`);setTimeout(()=>setToast(''),2000);});};
+  return <>
+    <hr className="divider"/>
+    <div id="contact">
+      <div className="contact-glow"/>
+      <div className="contact-inner">
+        {/* ✏️ Contact section heading and subtext */}
+        <div className="c-eyebrow reveal">Let's Connect</div>
+        <h2 className="c-title reveal">Ready to build<br/>something <span className="acc">great?</span></h2>
+        <p className="c-body reveal">I'm always open to interesting product conversations, collaboration opportunities, or a good chat about AI and product design.</p>
+        <div className="c-cards reveal">
+          {CONTACTS.map((c,i)=>(
+            <div key={i} style={{display:'flex',flexDirection:'column',gap:'.5rem'}}>
+              <a href={c.href} className="c-card" target={c.label==='LinkedIn'?'_blank':undefined} rel="noopener noreferrer">
+                <div className="c-card-icon"><c.Icon/></div>
+                <div className="c-card-label">{c.label}</div>
+                <div className="c-card-value">{c.value}</div>
+                <div className="c-card-action">{c.action} →</div>
+              </a>
+              <button className="copy-btn" onClick={()=>copy(c.copy,c.label)}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+    <div className={`toast ${toast?'show':''}`}>{toast}</div>
+  </>;
+}
+
+/* ── Project Detail Overlay ── */
+function ProjectDetail({id,onClose}) {
+  const d=PROJECT_DETAILS[id];
+  useEffect(()=>{document.body.style.overflow='hidden';return()=>{document.body.style.overflow='';};}, []);
+  if(!d) return null;
+  return (
+    <div className="detail-overlay open">
+      <div className="detail-back">
+        <button className="back-btn" onClick={onClose}>← Back</button>
+        <span className="back-crumb">Portfolio<span className="sep">/</span><span className="cur">{d.title}</span></span>
+      </div>
+      <img className="detail-hero-img" src={d.heroImg} alt={d.title}/>
+      <div className="detail-body">
+        <div className="detail-meta">
+          <span className="detail-meta-pill green">{d.role}</span>
+          <span className="detail-meta-pill">{d.company}</span>
+          <span className="detail-meta-pill">{d.period}</span>
+          {d.tags.map(t=><span className="detail-meta-pill" key={t}>{t}</span>)}
+        </div>
+        <h1 className="detail-title">{d.title}</h1>
+        <p className="detail-tagline">{d.tagline}</p>
+
+        {/* Overview */}
+        <div className="detail-section">
+          <div className="detail-section-title"><IcoTarget/>Overview</div>
+          <p className="detail-para">{d.overview}</p>
+        </div>
+
+        {/* Background */}
+        <div className="detail-section">
+          <div className="detail-section-title"><IcoFlag/>Background & Problem</div>
+          {d.background.map((p,i)=><p className="detail-para" key={i}>{p}</p>)}
+        </div>
+
+        {/* My Role */}
+        <div className="detail-section">
+          <div className="detail-section-title"><IcoStar/>My Role</div>
+          <p className="detail-para">{d.myRole}</p>
+        </div>
+
+        {/* Process */}
+        <div className="detail-section">
+          <div className="detail-section-title"><IcoCog/>Approach</div>
+          <div className="process-steps">
+            {d.process.map((p,i)=>(
+              <div className="ps" key={i}>
+                <div className="ps-step">Step {p.step}</div>
+                <div className="ps-title">{p.title}</div>
+                <div className="ps-desc">{p.desc}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Features */}
+        <div className="detail-section">
+          <div className="detail-section-title"><IcoZap/>Key Features</div>
+          <div className="feat-grid">
+            {d.features.map((f,i)=>(
+              <div className="feat-card" key={i}>
+                <div className="feat-title">{f.title}</div>
+                <div className="feat-desc">{f.desc}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Images */}
+        <div className="detail-section">
+          <div className="detail-section-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            Screenshots & Design
+          </div>
+          <div className={`img-gallery${d.images.length===2?' two':''}`}>
+            {d.images.map((img,i)=>(
+              <div key={i}>
+                <div className="gallery-img"><img src={img.src} alt={img.cap}/></div>
+                <div className="gallery-cap">{img.cap}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* PRD */}
+        <div className="detail-section">
+          <div className="detail-section-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+            PRD Excerpt
+          </div>
+          <div className="prd-box">
+            <div className="prd-feature">Feature: {d.prd.feature}</div>
+            <div className="prd-block">
+              <div className="prd-block-title">User Stories</div>
+              {d.prd.stories.map((s,i)=>(
+                <div className="us-row" key={i}>As a <span>{s.as}</span>, I want to {s.want}, so that {s.so}.</div>
+              ))}
+            </div>
+            <div className="prd-block">
+              <div className="prd-block-title">Acceptance Criteria</div>
+              <ul className="ac-list">{d.prd.criteria.map((c,i)=><li key={i}>{c}</li>)}</ul>
+            </div>
+            <div className="prd-meta">
+              <div className="prd-meta-item"><span className="prd-meta-label">Priority</span><span className="prd-meta-val">{d.prd.priority}</span></div>
+              <div className="prd-meta-item"><span className="prd-meta-label">Effort Estimate</span><span className="prd-meta-val">{d.prd.effort}</span></div>
+            </div>
+          </div>
+        </div>
+
+        {/* Impact */}
+        <div className="detail-section">
+          <div className="detail-section-title"><IcoTrend/>Impact & Results</div>
+          <div className="impact-grid">
+            {d.impact.map((m,i)=>(
+              <div className="impact-card" key={i}>
+                <div className="impact-val">{m.v}</div>
+                <div className="impact-lbl">{m.l}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Tech */}
+        <div className="detail-section">
+          <div className="detail-section-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+            Tools & Technology
+          </div>
+          <div className="tech-tags">{d.tech.map(t=><span className="tech-tag" key={t}>{t}</span>)}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ================================================================
+   ⚙️  MODULE 3 · APP ROOT  (routing + render — no edit needed)
+   ================================================================ */
+function App() {
+  const [active,setActive]=useState('hero');
+  const [detailId,setDetailId]=useState(null);
+  useReveal();
+
+  useEffect(()=>{
+    const obs=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)setActive(e.target.id);}),{threshold:.2});
+    ['about','experience','projects','skills','contact'].forEach(id=>{const el=document.getElementById(id);if(el)obs.observe(el);});
+    return()=>obs.disconnect();
+  },[]);
+
+  const scrollPosRef=useRef(0);
+  const openDetail=id=>{scrollPosRef.current=window.scrollY;setDetailId(id);window.scrollTo(0,0);};
+  const closeDetail=()=>{setDetailId(null);requestAnimationFrame(()=>window.scrollTo(0,scrollPosRef.current));};
+
+  return <>
+    <div className="noise"/><Cursor/><Nav active={active}/>
+    <main>
+      <Hero/>
+      <About/>
+      <Experience/>
+      <ProjectsFull onDetail={openDetail}/>
+      {/* <PhotoWall/> */}{/* ✏️ Life at Work 暂时隐藏，取消注释即可恢复 */}
+      <Skills/>
+      <Contact/>
+    </main>
+    {/* ✏️ Footer — update year, name, title */}
+    <footer><span>© 2026 Xinyi Kong</span><span>AI Product Manager · Singapore</span></footer>
+    {detailId && <ProjectDetail id={detailId} onClose={closeDetail}/>}
+  </>;
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
