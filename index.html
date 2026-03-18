@@ -346,12 +346,126 @@
       .nav-links li:not(:last-child){display:none}
       .impact-grid{grid-template-columns:repeat(3,1fr)}
     }
+    /* ── Language Toggle ── */
+    .lang-btn{background:transparent;border:none;padding:.3rem .7rem;margin-left:.2rem;border-radius:6px;display:flex;align-items:center;gap:.22rem;transition:background .22s}
+    .lang-btn:hover{background:rgba(26,201,122,.08)}
+    .lb-on{font-family:var(--ff-b);font-size:.85rem;font-weight:500;color:var(--text);transition:color .2s}
+    .lb-off{font-family:var(--ff-b);font-size:.85rem;font-weight:400;color:var(--text-light);transition:color .2s}
+    .lb-sep{font-family:var(--ff-b);font-size:.85rem;color:var(--border-mid);user-select:none}
+    .lang-btn:hover .lb-off{color:var(--text-mid)}
   </style>
 </head>
 <body>
 <div id="root"></div>
 <script type="text/babel">
 const { useState, useEffect, useRef } = React;
+
+/* ── Language Context ── */
+const LangCtx=React.createContext({lang:'en',toggle:()=>{}});
+const useLang=()=>React.useContext(LangCtx).lang;
+const useLangCtx=()=>React.useContext(LangCtx);
+/* t(obj, prop, lang) — picks obj[prop+'Zh'] with fallback to obj[prop] */
+const t=(o,k,l)=>l==='zh'?(o[k+'Zh']||o[k]):o[k];
+
+/* ── UI Translation Strings ── */
+const UI={
+  en:{
+    nav:['About','Experience','Projects','Skills'],
+    navContact:'Contact',
+    hero:{
+      eyebrow:'AI Product Manager · Singapore',
+      tagline:'I bridge AI, data, and user experience to ship products that create real, measurable impact — across fintech, automotive, and smart mobility.',
+      stats:['Years in Product','Users Impacted','Revenue Impact'],
+      btn1:'View Experience →',btn2:'Say Hello',
+    },
+    about:{
+      eyebrow:'About',h1:'System thinker.',h2:'Product builder.',
+      bio:[
+        'I\'m a <strong>hands-on Product Manager</strong> with a Computer Science foundation and a deep interest in AI. I have strong system thinking and am good at breaking down business goals, technical capabilities, and data into <strong>clear, executable product solutions.</strong>',
+        'I have a solid understanding of AI fundamentals — including Transformer architectures and end-to-end data-to-decision workflows — and the ability to <strong>translate them into real, deliverable products.</strong>',
+        'My experience spans AI-driven products, consumer mobile apps, and SaaS platforms across automotive tech, smart mobility, and fintech. I enjoy collaborating with diverse teams to build products that <strong>create real impact.</strong>',
+        'Currently pursuing M.Sc. Project Management at <strong>Nanyang Technological University, Singapore.</strong>',
+      ],
+      cards:[
+        {title:'AI Product Design',desc:'Transformer fundamentals, data-to-decision pipelines, AI-assisted ranking & recommendation, human-in-the-loop design.'},
+        {title:'SaaS & Platform Products',desc:'B2B platform architecture, modular system design, cross-market scalability, automation-first workflows.'},
+        {title:'Consumer Apps & IoT',desc:'End-to-end user journeys, BLE/UWB positioning systems, mobile-first design, real-time state management.'},
+      ],
+    },
+    exp:{eyebrow:'Experience',h1:"Where I've ",h2:'built.'},
+    proj:{eyebrow:'Projects',h1:"What I've ",h2:'shipped.',more:'More Details'},
+    skills:{
+      eyebrow:'Skills',h1:'How I ',h2:'work.',
+      langCerts:'Languages & Certifications',edu:'Education',
+      langItems:['English','Mandarin','Cantonese','CCF CSP Certified','Computer Level II','3 Software Copyrights','1 Patent'],
+    },
+    contact:{
+      eyebrow:"Let's Connect",
+      h1:'Ready to build',h2:'something ',h3:'great?',
+      body:"I'm always open to interesting product conversations, collaboration opportunities, or a good chat about AI and product design.",
+      copy:'Copy',
+    },
+    footer:'AI Product Manager · Singapore',
+    detail:{
+      back:'← Back',portfolio:'Portfolio',
+      overview:'Overview',background:'Background & Problem',role:'My Role',
+      approach:'Approach',step:'Step',features:'Key Features',
+      screenshots:'Screenshots & Design',prd:'PRD Excerpt',
+      feature:'Feature:',stories:'User Stories',criteria:'Acceptance Criteria',
+      priority:'Priority',effort:'Effort Estimate',impact:'Impact & Results',tech:'Tools & Technology',
+      as:'As a',want:'I want to',so:'so that',
+    },
+    toast:label=>`${label} copied!`,
+  },
+  zh:{
+    nav:['关于','经历','项目','技能'],
+    navContact:'联系我',
+    hero:{
+      eyebrow:'AI产品经理 · 新加坡',
+      tagline:'我连接AI、数据与用户体验，在金融科技、汽车科技和智慧出行领域，打造创造真实可量化影响力的产品。',
+      stats:['产品经验','用户覆盖','营收影响'],
+      btn1:'查看经历 →',btn2:'打个招呼',
+    },
+    about:{
+      eyebrow:'关于',h1:'系统思维者。',h2:'产品构建者。',
+      bio:[
+        '我是一名<strong>实战型产品经理</strong>，具备计算机科学背景，对AI有浓厚兴趣。我拥有较强的系统思维能力，善于将业务目标、技术能力和数据转化为<strong>清晰、可执行的产品方案。</strong>',
+        '我对AI基础有扎实的理解，包括Transformer架构和端到端数据决策流程，并具备将其<strong>转化为真实可交付产品</strong>的能力。',
+        '我的经历横跨AI驱动产品、消费端移动应用和SaaS平台，涉及汽车科技、智慧出行和金融科技领域。我享受与跨职能团队协作，共同构建<strong>创造真实影响力的产品。</strong>',
+        '目前就读于<strong>南洋理工大学（新加坡）项目管理理学硕士</strong>项目。',
+      ],
+      cards:[
+        {title:'AI产品设计',desc:'Transformer基础、数据决策流水线、AI辅助排序与推荐、人工在环设计。'},
+        {title:'SaaS与平台产品',desc:'B2B平台架构、模块化系统设计、跨市场可扩展性、自动化优先工作流。'},
+        {title:'消费端应用与物联网',desc:'端到端用户旅程、BLE/UWB定位系统、移动优先设计、实时状态管理。'},
+      ],
+    },
+    exp:{eyebrow:'经历',h1:'我构建过的',h2:'地方。'},
+    proj:{eyebrow:'项目',h1:'我交付过的',h2:'产品。',more:'查看详情'},
+    skills:{
+      eyebrow:'技能',h1:'我如何',h2:'工作。',
+      langCerts:'语言与认证',edu:'教育背景',
+      langItems:['英语','普通话','粤语','CCF CSP认证','计算机等级二级','3项软件著作权','1项专利'],
+    },
+    contact:{
+      eyebrow:'联系我',
+      h1:'准备好共创',h2:'',h3:'卓越产品了吗？',
+      body:'我始终欢迎有趣的产品对话、合作机会，或者一次关于AI与产品设计的深入交流。',
+      copy:'复制',
+    },
+    footer:'AI产品经理 · 新加坡',
+    detail:{
+      back:'← 返回',portfolio:'作品集',
+      overview:'项目概述',background:'背景与问题',role:'我的角色',
+      approach:'执行方法',step:'步骤',features:'核心功能',
+      screenshots:'截图与设计',prd:'PRD摘录',
+      feature:'功能：',stories:'用户故事',criteria:'验收标准',
+      priority:'优先级',effort:'工作量估算',impact:'影响与成果',tech:'工具与技术',
+      as:'作为',want:'，我希望',so:'，以便',
+    },
+    toast:label=>`${label}已复制！`,
+  },
+};
 
 /* ================================================================
    ✏️  MODULE 1 · EDITABLE CONTENT
@@ -389,16 +503,16 @@ const IcoStar = () => <Ico d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77
    top / left are % positions inside the hero right panel.
    ================================================================ */
 const KEYWORDS = [
-  {text:"AI Product Manager",cls:"kw-green",top:"7%",left:"4%",anim:"f3",dur:"5.8s",delay:"0s"},
-  {text:"System Thinking",cls:"kw-dark",top:"20%",left:"44%",anim:"f1",dur:"6.3s",delay:".5s"},
-  {text:"BLE · UWB",cls:"kw-white",top:"35%",left:"10%",anim:"f2",dur:"5.4s",delay:".9s"},
-  {text:"Data → Product",cls:"kw-mint",top:"50%",left:"52%",anim:"f4",dur:"7.1s",delay:".25s"},
-  {text:"SaaS Platforms",cls:"kw-dark",top:"64%",left:"6%",anim:"f5",dur:"6.6s",delay:"1.1s"},
-  {text:"Fintech",cls:"kw-white",top:"14%",left:"68%",anim:"f1",dur:"5.1s",delay:".65s"},
-  {text:"Smart Mobility",cls:"kw-mint",top:"75%",left:"40%",anim:"f6",dur:"6.9s",delay:".35s"},
-  {text:"Cross-functional",cls:"kw-white",top:"43%",left:"70%",anim:"f3",dur:"5.7s",delay:"1.3s"},
-  {text:"End-to-End Delivery",cls:"kw-dark",top:"86%",left:"12%",anim:"f2",dur:"6.2s",delay:".75s"},
-  {text:"Transformer · LLM",cls:"kw-mint",top:"28%",left:"28%",anim:"f4",dur:"7.3s",delay:"1.4s"},
+  {text:"AI Product Manager",textZh:"AI产品经理",cls:"kw-green",top:"7%",left:"4%",anim:"f3",dur:"5.8s",delay:"0s"},
+  {text:"System Thinking",textZh:"系统思维",cls:"kw-dark",top:"20%",left:"44%",anim:"f1",dur:"6.3s",delay:".5s"},
+  {text:"BLE · UWB",textZh:"BLE · UWB",cls:"kw-white",top:"35%",left:"10%",anim:"f2",dur:"5.4s",delay:".9s"},
+  {text:"Data → Product",textZh:"数据驱动产品",cls:"kw-mint",top:"50%",left:"52%",anim:"f4",dur:"7.1s",delay:".25s"},
+  {text:"SaaS Platforms",textZh:"SaaS平台",cls:"kw-dark",top:"64%",left:"6%",anim:"f5",dur:"6.6s",delay:"1.1s"},
+  {text:"Fintech",textZh:"金融科技",cls:"kw-white",top:"14%",left:"68%",anim:"f1",dur:"5.1s",delay:".65s"},
+  {text:"Smart Mobility",textZh:"智慧出行",cls:"kw-mint",top:"75%",left:"40%",anim:"f6",dur:"6.9s",delay:".35s"},
+  {text:"Cross-functional",textZh:"跨职能协作",cls:"kw-white",top:"43%",left:"70%",anim:"f3",dur:"5.7s",delay:"1.3s"},
+  {text:"End-to-End Delivery",textZh:"端到端交付",cls:"kw-dark",top:"86%",left:"12%",anim:"f2",dur:"6.2s",delay:".75s"},
+  {text:"Transformer · LLM",textZh:"Transformer · LLM",cls:"kw-mint",top:"28%",left:"28%",anim:"f4",dur:"7.3s",delay:"1.4s"},
 ];
 
 /* ================================================================
@@ -409,11 +523,36 @@ const KEYWORDS = [
    badge: the green metric badge on the card.
    ================================================================ */
 const PROJECTS = [
-  {id:"01",Icon:IcoCloud,    img:"saas_ui_dash",  title:"Parking Management SaaS",     co:"Xingji Technology",     desc:"Cloud platform digitising B2B parking operations — real-time occupancy, IoT lock control, AI dispute resolution, and multi-tenant billing.",         badge:"+40% Efficiency",  tags:["SaaS","B2B","AI","IoT"]},
-  {id:"02",Icon:IcoPhone2,   img:"mobile_app_ui", title:"ParkingPilot App",            co:"Xingji Technology",     desc:"Consumer smart parking app with AI-assisted search & ranking, full order lifecycle management, and seamless cashless payment.",                      badge:"AI Recommendation", tags:["ToC","AI","Payments"]},
-  {id:"03",Icon:IcoCar,      img:"auto_tech_ble", title:"PEPS Smart Digital Car Key",  co:"NIO Inc.",              desc:"BLE & UWB passive entry system across 100K+ NIO vehicles. Millimeter-level positioning via multi-signal fusion — contributed to >$50M in sales.",   badge:">$50M Impact",     tags:["Automotive","BLE","UWB"]},
-  {id:"04",Icon:IcoTrend,    img:"fintech_route",   title:"Dynamic Routing",              co:"Shopee — Monee Credit",  desc:"Redesigned credit fund allocation from static rules to a real-time, performance-signal-driven routing framework across 4 markets.",                   badge:"Multi-market",       tags:["Fintech","Data","Credit"]},
-  {id:"05",Icon:IcoPhone2,   img:"./img/tingya/hero.png",  title:"停鸭 Smart Parking Platform",  co:"Xingji — HarmonyOS Geekathon 2023", desc:"HarmonyOS-native app connecting idle parking space owners with drivers. AI-powered recommendations, BLE IoT lock control, and atomic desktop service cards — competition finalist.", badge:"2023 Geekathon",    tags:["HarmonyOS","IoT","AI","B2C/B2B"]},
+  {id:"01",Icon:IcoCloud,  img:"saas_ui_dash",
+   title:"Parking Management SaaS",titleZh:"停车管理SaaS平台",
+   co:"Xingji Technology",coZh:"星即科技",
+   desc:"Cloud platform digitising B2B parking operations — real-time occupancy, IoT lock control, AI dispute resolution, and multi-tenant billing.",
+   descZh:"面向B2B的云端停车运营平台——实时车位监控、物联网锁控、AI纠纷处理与多租户计费，赋能全国停车场数字化转型。",
+   badge:"+40% Efficiency",badgeZh:"+40% 效率提升",tags:["SaaS","B2B","AI","IoT"]},
+  {id:"02",Icon:IcoPhone2, img:"mobile_app_ui",
+   title:"ParkingPilot App",titleZh:"ParkingPilot智慧停车App",
+   co:"Xingji Technology",coZh:"星即科技",
+   desc:"Consumer smart parking app with AI-assisted search & ranking, full order lifecycle management, and seamless cashless payment.",
+   descZh:"面向消费者的智慧停车应用，搭载AI辅助搜索排序，支持完整订单生命周期管理与无缝无现金支付。",
+   badge:"AI Recommendation",badgeZh:"AI推荐算法",tags:["ToC","AI","Payments"]},
+  {id:"03",Icon:IcoCar,    img:"auto_tech_ble",
+   title:"PEPS Smart Digital Car Key",titleZh:"PEPS智能数字车钥匙",
+   co:"NIO Inc.",coZh:"蔚来汽车",
+   desc:"BLE & UWB passive entry system across 100K+ NIO vehicles. Millimeter-level positioning via multi-signal fusion — contributed to >$50M in sales.",
+   descZh:"BLE与UWB被动进入系统，覆盖10万辆以上蔚来车辆。基于多信号融合实现毫米级定位，贡献逾5000万美元销售额。",
+   badge:">$50M Impact",badgeZh:">$50M 影响",tags:["Automotive","BLE","UWB"]},
+  {id:"04",Icon:IcoTrend,  img:"fintech_route",
+   title:"Dynamic Routing",titleZh:"动态路由",
+   co:"Shopee — Monee Credit",coZh:"Shopee — Monee Credit",
+   desc:"Redesigned credit fund allocation from static rules to a real-time, performance-signal-driven routing framework across 4 markets.",
+   descZh:"将跨4个市场的信贷资金分配，从静态规则升级为基于实时性能信号的动态权重调整框架。",
+   badge:"Multi-market",badgeZh:"多市场覆盖",tags:["Fintech","Data","Credit"]},
+  {id:"05",Icon:IcoPhone2, img:"./img/tingya/hero.png",
+   title:"停鸭 Smart Parking Platform",titleZh:"停鸭智慧停车平台",
+   co:"Xingji — HarmonyOS Geekathon 2023",coZh:"星即科技 — 鸿蒙极客马拉松2023",
+   desc:"HarmonyOS-native app connecting idle parking space owners with drivers. AI-powered recommendations, BLE IoT lock control, and atomic desktop service cards — competition finalist.",
+   descZh:"鸿蒙原生App，连接闲置车位所有者与驾车者。搭载AI推荐、BLE物联锁控与原子级桌面服务卡——大赛决赛入围项目。",
+   badge:"2023 Geekathon",badgeZh:"2023极客马拉松",tags:["HarmonyOS","IoT","AI","B2C/B2B"]},
 ];
 
 /* ================================================================
@@ -427,22 +566,35 @@ const PROJECTS = [
 const PROJECT_DETAILS = {
   "01":{
     heroImg:"https://picsum.photos/seed/saas_hero/1200/500",
-    title:"Parking Management SaaS Platform",
-    tagline:"From manual operations to cloud-powered parking efficiency",
-    period:"Aug 2022 – Jul 2024",company:"Xingji Technology (Shanghai) Co., Ltd.",role:"Product Manager",
+    title:"Parking Management SaaS Platform",titleZh:"停车管理SaaS平台",
+    tagline:"From manual operations to cloud-powered parking efficiency",taglineZh:"从人工运营到云端智能停车管理",
+    period:"Aug 2022 – Jul 2024",company:"Xingji Technology (Shanghai) Co., Ltd.",role:"Product Manager",roleZh:"产品经理",
     tags:["SaaS","B2B","Cloud","AI","IoT"],
     overview:"Led end-to-end product design and delivery of a cloud-based Parking Management SaaS platform serving B2B clients across China. The platform digitised full operations — real-time occupancy tracking, IoT lock control, billing, and AI-assisted dispute resolution — replacing paper-based manual workflows.",
+    overviewZh:"主导设计并交付一款面向中国B2B客户的云端停车管理SaaS平台。平台数字化全流程运营——实时车位监控、物联网锁控、计费管理及AI辅助纠纷处理——取代了纸质人工工作流程。",
     background:[
       "Traditional parking lot management in China's tier-2/3 cities relied heavily on manual processes: paper ticket systems, manual headcounts, and end-of-day cash reconciliation. Operators managing multiple sites had zero real-time visibility.",
       "Revenue leakage was estimated at 15–20% due to underpayment, dispute mishandling, and billing errors. Staffing costs were high, and B2B clients were increasingly requesting digital solutions to stay competitive.",
       "Our opportunity was to build a unified, modular SaaS platform that could be rapidly deployed across parking lots of varying scale, integrating with existing IoT hardware while introducing intelligent automation where it mattered most.",
     ],
+    backgroundZh:[
+      "中国三四线城市的停车场管理长期依赖人工流程：纸质票据、人工车辆统计和每日现金对账。管理多个停车场的运营商对实时状态毫无把握。",
+      "由于漏付、纠纷处理不当和计费错误，收入流失估计高达15–20%。人力成本居高不下，B2B客户也日益寻求数字化解决方案以保持竞争力。",
+      "我们的机会在于构建一个统一的模块化SaaS平台，可快速部署至不同规模的停车场，整合现有物联网硬件，并在关键环节引入智能自动化。",
+    ],
     myRole:"As PM, I owned the product from 0→1: stakeholder requirement gathering, MVP scoping, sprint delivery, post-launch iteration, and client onboarding. I interfaced directly with B2B clients for requirement validation and collaborated with UI/UX, backend, and IoT engineering teams throughout.",
+    myRoleZh:"作为PM，我全程负责产品从0到1：需求收集、MVP范围界定、迭代交付、上线后优化及客户培训。我直接与B2B客户对接需求验证，并与UI/UX、后端及物联网工程团队紧密协作。",
     process:[
       {step:"01",title:"Discovery",desc:"10+ on-site client interviews, operator shadowing sessions, competitive analysis of parking management solutions in CN/APAC"},
       {step:"02",title:"MVP Scoping",desc:"Defined 4 core modules for V1: real-time occupancy, IoT lock control, billing engine, and user permission management"},
       {step:"03",title:"Design & Build",desc:"Iterative sprints with weekly client demos; coordinated hardware-software interface specs with IoT team"},
       {step:"04",title:"Scale & Iterate",desc:"Phased rollout to 5 pilot lots → 50+ lots; continuous iteration based on operator feedback and usage analytics"},
+    ],
+    processZh:[
+      {step:"01",title:"需求发现",desc:"对10+名现场客户进行深度访谈，开展运营者跟岗调研，并对中国/亚太停车管理解决方案进行竞品分析"},
+      {step:"02",title:"MVP范围界定",desc:"确定V1四大核心模块：实时车位监控、物联网锁控、计费引擎及用户权限管理"},
+      {step:"03",title:"设计与开发",desc:"以周为单位与客户进行迭代演示；与物联网团队协调硬件-软件接口规范"},
+      {step:"04",title:"扩展与迭代",desc:"分阶段从5个试点停车场扩展至50+停车场；持续基于运营商反馈和使用数据进行优化"},
     ],
     features:[
       {title:"Real-time Occupancy Dashboard",desc:"Live vehicle count per lot, space availability heatmap, historical trend analytics. Supports multi-lot view for operators managing 5+ sites simultaneously."},
@@ -450,10 +602,16 @@ const PROJECT_DETAILS = {
       {title:"AI-assisted Dispute Resolution",desc:"Rule-based + data-assisted decision engine generates preliminary suggestions for parking order disputes. Reduced average resolution time by 68%. Human override with full audit trail."},
       {title:"Multi-tenant Billing Engine",desc:"Supports fixed, hourly, and subscription pricing. Handles complex edge cases: overtime parking, unpaid order escalation, partial refunds, and promotional discounts."},
     ],
+    featuresZh:[
+      {title:"实时车位监控看板",desc:"每个停车场的实时车辆数、空位热力图及历史趋势分析。支持管理5个以上停车场的运营商进行多场地汇总视图。"},
+      {title:"智能物联网锁控",desc:"通过网页控制台和移动应用远程开/关锁。支持定时规则、人工覆盖及第三方硬件API集成。"},
+      {title:"AI辅助纠纷处理",desc:"规则引擎结合数据辅助决策，自动生成停车订单纠纷的初步处理建议。纠纷处理时效平均缩短68%。支持人工覆盖并保留完整审计记录。"},
+      {title:"多租户计费引擎",desc:"支持固定、按小时和订阅制定价。处理复杂边界情况：超时停车、未付款订单催缴、部分退款及促销折扣。"},
+    ],
     images:[
-      {src:"https://picsum.photos/seed/saas_dash/800/450",cap:"Operations dashboard — multi-lot real-time view"},
-      {src:"https://picsum.photos/seed/saas_mob/400/600",cap:"Mobile operator app"},
-      {src:"https://picsum.photos/seed/saas_data/800/400",cap:"Data analytics & reporting module"},
+      {src:"https://picsum.photos/seed/saas_dash/800/450",cap:"Operations dashboard — multi-lot real-time view",capZh:"运营看板 — 多停车场实时视图"},
+      {src:"https://picsum.photos/seed/saas_mob/400/600",cap:"Mobile operator app",capZh:"移动端运营App"},
+      {src:"https://picsum.photos/seed/saas_data/800/400",cap:"Data analytics & reporting module",capZh:"数据分析与报表模块"},
     ],
     prd:{
       feature:"AI-assisted Dispute Resolution Module",
@@ -471,27 +629,56 @@ const PROJECT_DETAILS = {
       ],
       priority:"P0 — Core V1 Feature",effort:"3 sprints (6 weeks)",
     },
-    impact:[{v:"20+",l:"B2B Clients"},{v:"50+",l:"Parking Lots"},{v:"+40%",l:"Efficiency"},{v:"+25%",l:"Revenue"},{v:"−60%",l:"Manual Ops"},{v:"−68%",l:"Dispute Time"}],
+    prdZh:{
+      feature:"AI辅助纠纷处理模块",
+      stories:[
+        {as:"停车场运营商",want:"当驾车者对费用提出纠纷时，系统自动给出建议处理方案",so:"我无需每次人工调查即可快速解决纠纷"},
+        {as:"系统管理员",want:"配置自动处理纠纷所需的置信度阈值",so:"我可以在自动化效率与风险控制之间取得平衡"},
+        {as:"合规审计员",want:"查看任何自动处理纠纷的完整决策依据",so:"我可以确保透明度并满足审计要求"},
+      ],
+      criteria:[
+        "系统须在纠纷提交后3秒内生成处理建议",
+        "建议须包含置信度得分（0-100）及前3个主要影响因素",
+        "置信度≥85的纠纷可自动处理；低于85须人工审核",
+        "所有自动处理纠纷须保留完整决策记录，保存期90天以供审计",
+        "运营商可覆盖任何建议；覆盖时须填写必填理由字段",
+      ],
+      priority:"P0 — 核心V1功能",effort:"3个迭代（6周）",
+    },
+    impact:[{v:"20+",l:"B2B Clients",lz:"B2B客户"},{v:"50+",l:"Parking Lots",lz:"停车场"},{v:"+40%",l:"Efficiency",lz:"效率提升"},{v:"+25%",l:"Revenue",lz:"收入增长"},{v:"−60%",l:"Manual Ops",lz:"人工减少"},{v:"−68%",l:"Dispute Time",lz:"纠纷时效"}],
     tech:["React","Java Spring Boot","MySQL","MQTT (IoT)","Python Analytics","Figma","JIRA"],
   },
   "02":{
     heroImg:"https://picsum.photos/seed/pilotapp/1200/500",
-    title:"ParkingPilot — Smart Parking App",
-    tagline:"AI-powered parking discovery from search to seamless payment",
-    period:"Aug 2022 – Mar 2024",company:"Xingji Technology (Shanghai) Co., Ltd.",role:"Product Manager",
+    title:"ParkingPilot — Smart Parking App",titleZh:"ParkingPilot — 智慧停车App",
+    tagline:"AI-powered parking discovery from search to seamless payment",taglineZh:"AI赋能的停车发现体验，从搜索到无感支付",
+    period:"Aug 2022 – Mar 2024",company:"Xingji Technology (Shanghai) Co., Ltd.",role:"Product Manager",roleZh:"产品经理",
     tags:["Consumer App","AI","iOS","Android","Payments","Recommendation"],
     overview:"Led product design and iteration of ParkingPilot, a consumer-facing smart parking app for iOS and Android. The app helps urban drivers discover, reserve, and pay for parking — powered by AI-assisted search ranking and a fully automated order-to-payment lifecycle.",
+    overviewZh:"主导ParkingPilot消费端智慧停车App的产品设计与迭代，支持iOS和Android双平台。应用帮助城市驾驶者发现、预约和支付停车位——借助AI辅助搜索排序和全自动订单到支付生命周期，实现真正的无感体验。",
     background:[
       "Urban drivers in Chinese tier-2 cities spent an average of 15–20 minutes finding parking. Existing apps provided only static lot listings with no live data, forcing drivers to call ahead or drive around hoping for availability.",
       "Core pain points: uncertainty about real-time availability, no way to compare prices in context, and a disconnected payment experience requiring manual interactions at the exit gate — three separate friction points in one journey.",
       "ParkingPilot was designed to close this loop end-to-end — from pre-trip intent to post-exit payment — using real-time IoT data from our SaaS platform and AI-driven search to deliver a confident, frictionless experience.",
     ],
+    backgroundZh:[
+      "中国二三线城市驾驶者平均花费15–20分钟寻找车位。现有应用仅提供静态停车场列表，没有实时数据，驾驶者只能提前电话咨询或四处寻找空位。",
+      "核心痛点：实时空位的不确定性、无法在场景中对比价格，以及需要在出口闸机人工操作的支付体验——一段停车旅程中有三个独立摩擦点。",
+      "ParkingPilot的设计目标是端到端打通这一完整旅程——从出发前的意图到离场后的支付——利用SaaS平台的实时物联网数据和AI驱动搜索，提供充满信心的无摩擦体验。",
+    ],
     myRole:"I owned the full consumer product: user journey definition, PRD for core features (search, reservation, order management, payment), usability testing with target users (urban drivers 25–45), and data-driven post-launch iteration.",
+    myRoleZh:"我负责完整消费端产品：用户旅程定义、核心功能PRD（搜索、预约、订单管理、支付），以及与目标用户（25–45岁城市驾驶者）的可用性测试，并基于数据驱动上线后持续迭代。",
     process:[
       {step:"01",title:"User Research",desc:"Diary studies + in-car observation sessions with 15 urban drivers; identified 3 key anxiety points in the parking journey"},
       {step:"02",title:"Journey Mapping",desc:"Mapped end-to-end parking journey from pre-trip intent to post-payment; identified 8 potential drop-off points"},
       {step:"03",title:"Feature Design",desc:"Prioritised AI search ranking, reservation flow, and seamless payment as V1 core; deferred social and reviews features"},
       {step:"04",title:"Measure & Iterate",desc:"Tracked booking conversion, search-to-reserve time, payment success rate; ran 3 A/B tests on ranking logic weights"},
+    ],
+    processZh:[
+      {step:"01",title:"用户研究",desc:"对15名城市驾驶者进行日记研究与车内观察，识别出停车旅程中3个核心焦虑点"},
+      {step:"02",title:"旅程映射",desc:"绘制从出发前意图到支付完成的端到端停车旅程；识别8个潜在流失节点"},
+      {step:"03",title:"功能设计",desc:"将AI搜索排序、预约流程和无感支付列为V1核心；社交和评价功能延后排期"},
+      {step:"04",title:"度量与迭代",desc:"追踪预订转化率、搜索到预约时长、支付成功率；对排序逻辑权重进行了3次A/B测试"},
     ],
     features:[
       {title:"AI-assisted Search & Ranking",desc:"Ranks available lots using a weighted model: real-time availability (40%), walking distance (25%), price fit (20%), user preference history (15%). Re-scored every 60 seconds."},
@@ -499,10 +686,16 @@ const PROJECT_DETAILS = {
       {title:"Seamless Exit Payment",desc:"Exit-triggered automatic payment via pre-authorised card or Alipay/WeChat Pay. Handles retry logic for failures, unpaid order escalation, and partial refunds."},
       {title:"Personalised Recommendation",desc:"Incorporates historical behaviour (frequent lots, price range, typical duration) to personalise results for returning users after ≥ 3 bookings."},
     ],
+    featuresZh:[
+      {title:"AI辅助搜索排序",desc:"使用加权模型对可用停车场排序：实时空位（40%）、步行距离（25%）、价格匹配（20%）、用户偏好历史（15%）。每60秒重新评分。"},
+      {title:"预约与订单生命周期",desc:"支持即时预订和提前预约（最长2小时）。完整订单状态机涵盖7种状态，处理超时延长、提前离场调整和取消规则。"},
+      {title:"无感离场支付",desc:"离场触发自动扣款，支持预授权银行卡或支付宝/微信支付。处理重试逻辑、未付款订单催缴和部分退款。"},
+      {title:"个性化推荐",desc:"在用户完成≥3次预订后，基于历史行为（常用停车场、价格区间、典型停车时长）为回访用户个性化推荐结果。"},
+    ],
     images:[
-      {src:"https://picsum.photos/seed/pilot_search/400/700",cap:"Search & discovery screen"},
-      {src:"https://picsum.photos/seed/pilot_map/800/450",cap:"Map view with real-time availability"},
-      {src:"https://picsum.photos/seed/pilot_pay/400/700",cap:"Seamless exit payment flow"},
+      {src:"https://picsum.photos/seed/pilot_search/400/700",cap:"Search & discovery screen",capZh:"搜索与发现界面"},
+      {src:"https://picsum.photos/seed/pilot_map/800/450",cap:"Map view with real-time availability",capZh:"实时空位地图视图"},
+      {src:"https://picsum.photos/seed/pilot_pay/400/700",cap:"Seamless exit payment flow",capZh:"无感离场支付流程"},
     ],
     prd:{
       feature:"AI Search Ranking — Slot Requirements",
@@ -520,27 +713,56 @@ const PROJECT_DETAILS = {
       ],
       priority:"P0 — Core Launch Feature",effort:"4 sprints (8 weeks)",
     },
-    impact:[{v:"AI",l:"Search Ranking"},{v:"E2E",l:"Parking Journey"},{v:"+35%",l:"Booking Conversion"},{v:"<2s",l:"Search Load"},{v:"99.1%",l:"Payment Success"}],
+    prdZh:{
+      feature:"AI搜索排序 — 需求说明",
+      stories:[
+        {as:"首次在目的地附近搜索的用户",want:"看到按距离和实时空位排序的最相关停车场",so:"我能快速自信地选择车位"},
+        {as:"固定通勤者",want:"在公司附近搜索时，常用停车场能显眼地排在前面",so:"我能以最小摩擦完成再次预订"},
+        {as:"价格敏感的驾驶者",want:"无需打开每个详情页即可看到清晰的价格对比",so:"我能快速做出明智决策"},
+      ],
+      criteria:[
+        "搜索结果须在2秒内（p95）加载完成",
+        "排序模型须整合实时空位数据，数据延迟<60秒",
+        "结果须显示：停车场名称、距离、当前空位率、每小时价格、步行时长估算",
+        "个性化信号仅在用户有≥3次历史预订后生效",
+        "每条结果须显示原因标签（如「您的常用停车场」、「最近的空位」）",
+      ],
+      priority:"P0 — 核心上线功能",effort:"4个迭代（8周）",
+    },
+    impact:[{v:"AI",l:"Search Ranking",lz:"搜索排序"},{v:"E2E",l:"Parking Journey",lz:"全程覆盖"},{v:"+35%",l:"Booking Conversion",lz:"预订转化"},{v:"<2s",l:"Search Load",lz:"搜索加载"},{v:"99.1%",l:"Payment Success",lz:"支付成功率"}],
     tech:["iOS (Swift)","Android (Kotlin)","Python (Ranking)","REST APIs","Alipay/WeChat SDK","Figma"],
   },
   "03":{
     heroImg:"https://picsum.photos/seed/nio_hero/1200/500",
-    title:"PEPS Smart Digital Car Key",
-    tagline:"Millimeter-precise keyless entry for 100K+ NIO vehicles",
-    period:"Jul 2021 – May 2022",company:"NIO Inc.",role:"Assistant Product Manager",
+    title:"PEPS Smart Digital Car Key",titleZh:"PEPS智能数字车钥匙",
+    tagline:"Millimeter-precise keyless entry for 100K+ NIO vehicles",taglineZh:"覆盖10万辆以上蔚来车辆的毫米级精准无钥匙进入",
+    period:"Jul 2021 – May 2022",company:"NIO Inc.",role:"Assistant Product Manager",roleZh:"助理产品经理",
     tags:["Automotive","BLE","UWB","IoT","Digital Key","Mobile"],
     overview:"Led end-to-end product lifecycle for NIO's Passive Entry Passive Start (PEPS) Smart Digital Key — enabling seamless keyless vehicle entry and start using BLE and UWB positioning. Deployed across multiple NIO models with 100K+ vehicles and contributing >$50M in sales.",
+    overviewZh:"主导蔚来PEPS（被动进入被动启动）智能数字车钥匙的端到端产品生命周期——通过BLE和UWB定位实现无感无钥匙进入与启动。已在蔚来多款车型上部署，覆盖10万辆以上车辆，贡献逾5000万美元销售额。",
     background:[
       "Physical keys create friction in the premium automotive experience. NIO's vision was to make the car an extension of the owner's digital life — the phone becomes the key, with no interaction required.",
       "Early BLE-only solutions suffered from signal instability: false triggers when the phone was nearby but the driver wasn't approaching, delayed responses in signal-dense environments (parking garages), and excessive battery drain.",
       "UWB (Ultra-Wideband) technology provided centimeter-level ranging capability, enabling a fundamentally more reliable passive entry experience — unlocking only when the driver is within 1m of the door handle and actively approaching.",
     ],
+    backgroundZh:[
+      "实体钥匙在豪华汽车体验中制造了不必要的摩擦。蔚来的愿景是让汽车成为车主数字生活的延伸——手机即钥匙，无需任何操作。",
+      "早期纯BLE方案受信号稳定性困扰：当手机在附近但车主未靠近时出现误触发，在信号密集环境（地下停车场）中响应延迟，以及电量损耗过快。",
+      "UWB（超宽带）技术提供了厘米级测距能力，使被动进入体验更加可靠——仅当车主手持手机靠近门把手1米范围内且正在接近时才解锁。",
+    ],
     myRole:"As APM, I led product definition: user stories, edge case mapping, competitive benchmarking, and cross-functional coordination across mobile (iOS/Android), vehicle firmware, BLE/UWB chip vendor, and QA teams. I specifically owned the triggering strategy logic and the OTA rollout validation framework.",
+    myRoleZh:"作为APM，我主导产品定义：用户故事、边界情况映射、竞品分析，以及跨手机（iOS/Android）、整车固件、BLE/UWB芯片供应商和QA团队的跨职能协调。我重点负责触发策略逻辑和OTA推送验证框架。",
     process:[
       {step:"01",title:"Problem Analysis",desc:"Analysed 500+ user-reported false/missed trigger incidents from prior BLE-only system; categorised into 8 failure mode clusters"},
       {step:"02",title:"Tech Evaluation",desc:"Evaluated UWB vs. enhanced BLE; defined accuracy, latency, and battery requirements with hardware and algorithm teams"},
       {step:"03",title:"Logic Design",desc:"Designed multi-signal fusion rules: UWB range + BLE RSSI + phone motion sensor + user behaviour baseline"},
       {step:"04",title:"Staged Rollout",desc:"OTA rollout: 5% → 20% → 100% with real-time monitoring of false trigger rate and manual override events"},
+    ],
+    processZh:[
+      {step:"01",title:"问题分析",desc:"分析前一代纯BLE系统500余条用户报告的误/漏触发事件，归纳为8类故障模式"},
+      {step:"02",title:"技术评估",desc:"评估UWB与增强型BLE方案；与硬件和算法团队定义精度、延迟及电量需求"},
+      {step:"03",title:"逻辑设计",desc:"设计多信号融合规则：UWB测距+BLE RSSI+手机运动传感器+用户行为基线"},
+      {step:"04",title:"分阶段推送",desc:"OTA分批推送：5%→20%→100%，实时监控误触发率和人工覆盖事件"},
     ],
     features:[
       {title:"Proximity-based Auto-unlock",desc:"Unlocks vehicle when authenticated phone is within 0.8–1.2m of the door handle, determined by UWB + BLE confirmation. Trigger latency < 300ms."},
@@ -548,10 +770,16 @@ const PROJECT_DETAILS = {
       {title:"Multi-signal Fusion Engine",desc:"Fuses UWB distance, BLE RSSI, phone accelerometer/gyroscope, and environmental interference detection. Reduces false trigger rate by 73% vs. BLE-only baseline."},
       {title:"OTA Configurable Parameters",desc:"Triggering logic parameters are OTA-configurable, enabling rapid iteration without app or firmware release cycles. Supports cohort-based A/B testing."},
     ],
+    featuresZh:[
+      {title:"基于近场感知的自动解锁",desc:"当已认证手机进入门把手0.8–1.2米范围内时，通过UWB+BLE确认后自动解锁车辆。触发延迟<300毫秒。"},
+      {title:"离车自动上锁",desc:"当手机移动至车辆5米以外超过3秒且运动传感器确认后，自动上锁。用户可自定义灵敏度偏好。"},
+      {title:"多信号融合引擎",desc:"融合UWB测距、BLE RSSI、手机加速度/陀螺仪及环境干扰检测。相比纯BLE方案，误触发率降低73%。"},
+      {title:"OTA可配置参数",desc:"触发逻辑参数支持OTA配置，无需App或固件发版即可快速迭代。支持分组A/B测试。"},
+    ],
     images:[
-      {src:"https://picsum.photos/seed/nio_car/800/450",cap:"PEPS system architecture overview"},
-      {src:"https://picsum.photos/seed/nio_app/400/700",cap:"NIO App digital key interface"},
-      {src:"https://picsum.photos/seed/nio_field/800/450",cap:"Field testing in multi-environment scenarios"},
+      {src:"https://picsum.photos/seed/nio_car/800/450",cap:"PEPS system architecture overview",capZh:"PEPS系统架构概览"},
+      {src:"https://picsum.photos/seed/nio_app/400/700",cap:"NIO App digital key interface",capZh:"NIO App数字钥匙界面"},
+      {src:"https://picsum.photos/seed/nio_field/800/450",cap:"Field testing in multi-environment scenarios",capZh:"多环境场景实地测试"},
     ],
     prd:{
       feature:"Auto-unlock Triggering Strategy",
@@ -570,27 +798,57 @@ const PROJECT_DETAILS = {
       ],
       priority:"P0 — Vehicle Launch Requirement",effort:"6 sprints (12 weeks) + 4-week staged OTA rollout",
     },
-    impact:[{v:"100K+",l:"Vehicles"},{v:">$50M",l:"Sales Impact"},{v:"−73%",l:"False Triggers"},{v:"<300ms",l:"Unlock Latency"},{v:"mm",l:"UWB Accuracy"}],
+    prdZh:{
+      feature:"自动解锁触发策略",
+      stories:[
+        {as:"蔚来车主",want:"手机放在口袋里靠近车辆时，车辆能自动解锁",so:"我无需掏出手机即可开门"},
+        {as:"蔚来车主",want:"手机在附近但我并未靠近时，车辆不会自动解锁",so:"避免在拥挤停车场中意外解锁"},
+        {as:"多手机家庭用户",want:"指定一部手机作为PEPS触发主机",so:"避免我和家人的手机同时在场时产生冲突"},
+      ],
+      criteria:[
+        "手机进入1.2米UWB触发区后，自动解锁须在300毫秒内完成",
+        "标准环境（开放停车场）误触发率须<0.5%",
+        "密集RF环境（地下停车场）误触发率须<2%",
+        "手机静止超过30秒时，运动数据须抑制触发",
+        "若车门开启或检测到舱内有人，自动上锁不得触发",
+        "所有触发事件须记录完整信号上下文，供事后分析",
+      ],
+      priority:"P0 — 车辆上市必要条件",effort:"6个迭代（12周）+ 4周分阶段OTA推送",
+    },
+    impact:[{v:"100K+",l:"Vehicles",lz:"车辆覆盖"},{v:">$50M",l:"Sales Impact",lz:"销售贡献"},{v:"−73%",l:"False Triggers",lz:"误触发率"},{v:"<300ms",l:"Unlock Latency",lz:"解锁延迟"},{v:"mm",l:"UWB Accuracy",lz:"UWB精度"}],
     tech:["BLE 5.0","UWB (IEEE 802.15.4z)","iOS / Android","Vehicle CAN Bus","OTA Framework","Python (Analysis)"],
   },
   "04":{
     heroImg:"https://picsum.photos/seed/shopee_hero/1200/500",
-    title:"Dynamic Routing — Monee Credit",
-    tagline:"Intelligent capital allocation across Shopee's multi-market lending ecosystem",
-    period:"Jun 2025 – Dec 2025",company:"Shopee (Sea Group)",role:"Product Management Intern",
+    title:"Dynamic Routing — Monee Credit",titleZh:"动态路由 — Monee Credit",
+    tagline:"Intelligent capital allocation across Shopee's multi-market lending ecosystem",taglineZh:"Shopee多市场借贷生态系统中的智能资金分配",
+    period:"Jun 2025 – Dec 2025",company:"Shopee (Sea Group)",role:"Product Management Intern",roleZh:"产品管理实习生",
     tags:["Fintech","Credit","Data-driven","BNPL","Multi-market"],
     overview:"Supported the design and rollout of Dynamic Routing — a fund allocation framework that evolved Shopee Monee Credit's capital distribution from static, manually-configured rules to a real-time, performance-signal-driven system. Deployed across SG, VN, PH, and BR markets.",
+    overviewZh:"协助设计并推广动态路由——一套将Shopee Monee Credit资金分配从静态人工规则升级为实时性能信号驱动系统的框架。已在新加坡、越南、菲律宾和巴西四个市场部署。",
     background:[
       "Shopee's Monee Credit operates a multi-funder lending model: multiple financial institutions provide capital to fund BNPL and Cash Loan products. Each funder has different costs, risk appetites, approval rates, and capacity constraints.",
       "The legacy system allocated loan applications using static rules (e.g. 'Funder A gets 40% of SG BNPL volume'). This created misallocation — expensive funders serving volume that cheaper funders could handle — and any rebalancing required engineering work, causing week-long delays.",
       "The Dynamic Routing initiative aimed to make fund allocation intelligent and self-adjusting: continuously optimising funder weights based on real-time performance signals while respecting business and compliance constraints.",
     ],
+    backgroundZh:[
+      "Shopee Monee Credit采用多资方借贷模式：多家金融机构提供资金，支持BNPL和现金贷产品。每家资方在资金成本、风险偏好、批核率和额度约束上均有所不同。",
+      "原有系统通过静态规则分配贷款申请（如「资方A获得新加坡BNPL额度的40%」）。这造成资金错配——价高的资方承接了价低资方本可处理的额度——而任何再平衡都需要工程介入，导致数周的调整周期。",
+      "动态路由旨在使资金分配更加智能化和自适应：基于实时性能信号持续优化资方权重，同时遵守业务和合规约束。",
+    ],
     myRole:"Supported the PM and designed the Dynamic Routing system: conducting stakeholder requirement analysis (business, risk, finance, compliance, engineering), mapping the routing decision framework, defining the 12 data input signals and configurable parameters, and coordinating with Dev and Data Science teams on implementation feasibility.",
+    myRoleZh:"协助PM设计动态路由系统：开展利益相关方需求分析（业务、风控、财务、合规、工程），梳理路由决策框架，定义12个数据输入信号和可配置参数，并与开发和数据科学团队协调实施可行性。",
     process:[
       {step:"01",title:"Stakeholder Mapping",desc:"Mapped requirements from 5 stakeholder groups; captured 40+ constraints and objectives across credit, risk, finance, compliance, and engineering"},
       {step:"02",title:"Framework Design",desc:"Designed routing decision model: priority tiers, weight adjustment rules, override mechanisms, and fallback logic"},
       {step:"03",title:"Data Pipeline Definition",desc:"Defined 12 input signals: cost of capital, utilisation rate, 7-day approval rate, portfolio risk score, and more"},
       {step:"04",title:"Shadow Mode & Rollout",desc:"3-week shadow mode (decisions logged but not actioned), then phased live activation market by market"},
+    ],
+    processZh:[
+      {step:"01",title:"利益相关方梳理",desc:"梳理5个利益相关方群体的需求；在信贷、风控、财务、合规和工程维度归纳40余项约束和目标"},
+      {step:"02",title:"框架设计",desc:"设计路由决策模型：优先级层级、权重调整规则、覆盖机制和降级逻辑"},
+      {step:"03",title:"数据管道定义",desc:"定义12个输入信号：资金成本、使用率、7日批核率、组合风险评分等"},
+      {step:"04",title:"影子模式与推广",desc:"3周影子模式（决策记录但不生效），随后按市场分阶段上线"},
     ],
     features:[
       {title:"Performance-signal Weight Adjustment",desc:"Funder allocation weights auto-adjust based on: funding cost, utilisation rate vs. capacity, rolling approval performance, and risk concentration. Recalculated every 4 hours."},
@@ -598,10 +856,16 @@ const PROJECT_DETAILS = {
       {title:"Human Override & Circuit Breaker",desc:"Business team can manually override funder weights with a justification. Circuit breaker auto-reverts to previous weights if performance degrades beyond threshold within 24h of a change."},
       {title:"Settlement & Reconciliation Traceability",desc:"Tracks each loan's funder attribution through the full repayment lifecycle. Generates daily reconciliation reports across markets for Finance and funder partner review."},
     ],
+    featuresZh:[
+      {title:"基于性能信号的权重调整",desc:"资方分配权重根据以下指标自动调整：资金成本、使用率与额度对比、滚动批核表现及风险集中度。每4小时重新计算一次。"},
+      {title:"业务规则约束",desc:"路由遵守硬性约束：资方最小/最大分配比例、市场特定监管限制和战略关系承诺。无需代码部署即可配置。"},
+      {title:"人工覆盖与熔断机制",desc:"业务团队可手动覆盖资方权重并注明理由。若变更后24小时内性能下降超过阈值，熔断机制自动回滚至前一版本权重。"},
+      {title:"清算与对账可追溯性",desc:"追踪每笔贷款在完整还款周期内的资方归属。每日生成各市场对账报告，供财务和资方合作伙伴审核。"},
+    ],
     images:[
-      {src:"https://picsum.photos/seed/routing_arch/800/450",cap:"Dynamic routing system architecture"},
-      {src:"https://picsum.photos/seed/routing_dash/800/400",cap:"Funder performance signal dashboard"},
-      {src:"https://picsum.photos/seed/routing_recon/800/400",cap:"Settlement & reconciliation flow"},
+      {src:"https://picsum.photos/seed/routing_arch/800/450",cap:"Dynamic routing system architecture",capZh:"动态路由系统架构"},
+      {src:"https://picsum.photos/seed/routing_dash/800/400",cap:"Funder performance signal dashboard",capZh:"资方性能信号看板"},
+      {src:"https://picsum.photos/seed/routing_recon/800/400",cap:"Settlement & reconciliation flow",capZh:"清算与对账流程"},
     ],
     prd:{
       feature:"Dynamic Weight Adjustment Engine — Core Requirements",
@@ -620,29 +884,59 @@ const PROJECT_DETAILS = {
       ],
       priority:"P0 — Strategic Initiative",effort:"4 sprints (8 weeks) + 3-week shadow mode validation",
     },
-    impact:[{v:"4",l:"Markets"},{v:"12",l:"Signal Inputs"},{v:"4h",l:"Recalc Cycle"},{v:"Auto",l:"Weight Adjust"},{v:"↓",l:"Manual Overhead"}],
+    prdZh:{
+      feature:"动态权重调整引擎 — 核心需求",
+      stories:[
+        {as:"信贷业务经理",want:"当某资方批核率显著下降时，分配权重能自动调整",so:"我不需要在每次市场条件变化时人工再平衡"},
+        {as:"风险经理",want:"为每个资方设置最大集中度上限",so:"避免对任何单一资金来源过度依赖"},
+        {as:"业务分析师",want:"查看包含触发信号的完整权重变更历史",so:"我可以向管理层和监管机构审计并解释分配决策"},
+      ],
+      criteria:[
+        "权重重算须每4小时运行一次，使用数据延迟不超过30分钟",
+        "任何资方权重须始终保持在配置的最小/最大边界内",
+        "单次重算权重变化超过15%须触发业务团队告警",
+        "完整审计日志：记录前一权重、新权重、时间戳及前3个主要影响信号",
+        "授权用户的人工覆盖须在5分钟内生效",
+        "变更后24小时内性能较7日基线下降超过10%，熔断机制须自动回滚",
+      ],
+      priority:"P0 — 战略重点项目",effort:"4个迭代（8周）+ 3周影子模式验证",
+    },
+    impact:[{v:"4",l:"Markets",lz:"覆盖市场"},{v:"12",l:"Signal Inputs",lz:"信号输入"},{v:"4h",l:"Recalc Cycle",lz:"重算周期"},{v:"Auto",l:"Weight Adjust",lz:"自动调权"},{v:"↓",l:"Manual Overhead",lz:"人工减负"}],
     tech:["Python (Data Pipeline)","SQL","Rule Engine","Internal Credit Platform","Confluence","JIRA"],
   },
 
   // ✏️ Project 05 — 停鸭 Smart Parking Platform
   "05":{
     heroImg:"./img/tingya/hero.png",
-    title:"停鸭 — Smart Parking Platform",
-    tagline:"Connecting idle parking spaces with drivers, powered by HarmonyOS atomic services",
-    period:"2023",company:"Xingji Technology (Shanghai) Co., Ltd.",role:"Product Manager",
+    title:"停鸭 — Smart Parking Platform",titleZh:"停鸭 — 智慧停车平台",
+    tagline:"Connecting idle parking spaces with drivers, powered by HarmonyOS atomic services",taglineZh:"通过鸿蒙原子服务，连接闲置车位与驾车者",
+    period:"2023",company:"Xingji Technology (Shanghai) Co., Ltd.",role:"Product Manager",roleZh:"产品经理",
     tags:["HarmonyOS","IoT","AI","B2C","B2B","Smart Mobility"],
     overview:"Led product strategy and design for 停鸭, a HarmonyOS-native smart parking platform developed for the 2023 Huawei HarmonyOS Geekathon (极客马拉松). The platform tackles China's 199-million parking space deficit by connecting idle private spaces with drivers through AI recommendations, BLE IoT lock control, and frictionless HarmonyOS atomic desktop service cards — serving both space owners and car owners in a two-sided marketplace.",
+    overviewZh:"主导停鸭的产品战略与设计——一款为2023年华为鸿蒙极客马拉松开发的鸿蒙原生智慧停车平台。通过AI推荐、BLE物联网锁控和无需启动App的鸿蒙原子桌面服务卡，连接闲置私家车位所有者与驾车者，构建双边市场——解决中国1.99亿个车位的缺口。",
     background:[
       "China had 426 million registered vehicles in 2023 but only an estimated 151 million parking spaces — a deficit of approximately 199 million spaces, with a vehicle-to-space ratio of just 0.46:1. The gap is especially acute in residential and commercial areas where private spaces sit idle for hours each day.",
       "Existing solutions were fragmented: parking apps showed static lot listings with no real-time data, private space owners had no way to monetize idle hours, and drivers faced information asymmetry that caused significant time loss and traffic congestion around popular destinations.",
       "The Geekathon brief challenged teams to leverage HarmonyOS-specific capabilities — atomic services (元服务), distributed architecture, and ArkUI multi-device deployment — to solve a real urban problem. 停鸭 was designed to win on technical depth while delivering a genuinely user-centered solution.",
     ],
+    backgroundZh:[
+      "2023年中国有4.26亿辆注册车辆，但停车位估计仅有1.51亿个——缺口约1.99亿个，车位比仅为0.46:1。这一问题在居住区和商业区尤为突出，私家车位每天闲置数小时。",
+      "现有解决方案碎片化：停车App仅展示静态停车场列表，没有实时数据；私家车位所有者无法将闲置时段变现；驾车者面临信息不对称，在热门目的地附近造成严重时间损失和交通拥堵。",
+      "极客马拉松要求团队充分利用鸿蒙特有能力——元服务、分布式架构和ArkUI多设备部署——解决真实城市问题。停鸭在技术深度和用户中心设计上双管齐下。",
+    ],
     myRole:"As Product Director, I defined the product vision, framed the two-sided marketplace model, led the user research, authored all PRDs and feature specs, and coordinated the cross-functional team of 5 (CTO, senior UX designer, full-stack engineer, and industry investment advisor) from kick-off through the live competition demo.",
+    myRoleZh:"作为产品总监，我定义了产品愿景、构建双边市场模型、主导用户研究、撰写全部PRD和功能规格，并协调由5人组成的跨职能团队（CTO、资深UX设计师、全栈工程师和行业投资顾问）从启动到现场比赛演示的全过程。",
     process:[
       {step:"01",title:"Market Research",desc:"Analysed China parking deficit data; interviewed 20+ drivers and 10+ private space owners to surface key pain points: information asymmetry, idle capacity waste, and safety concerns around space sharing"},
       {step:"02",title:"Platform Design",desc:"Defined two-sided marketplace: space owner flows (onboarding, smart scheduling, revenue tracking) + driver flows (AI search, one-tap lock release, status monitoring). Mapped 12 key user journeys"},
       {step:"03",title:"HarmonyOS Architecture",desc:"Scoped HarmonyOS-native features: atomic desktop cards for instant access without app launch; BLE pre-loading for <200ms lock response; distributed data sync for real-time space availability"},
       {step:"04",title:"Competition Build",desc:"Delivered working HAP package, design prototype, demo videos (BLE lock, phone screen, cloud server control), and full product documentation within competition timeline"},
+    ],
+    processZh:[
+      {step:"01",title:"市场调研",desc:"分析中国停车缺口数据；访谈20余名驾驶者和10余名私家车位所有者，发现核心痛点：信息不对称、闲置产能浪费和安全顾虑"},
+      {step:"02",title:"平台设计",desc:"定义双边市场：车位所有者流程（上线、智能排班、收益追踪）+ 驾驶者流程（AI搜索、一键开锁、状态监控）。梳理12条核心用户旅程"},
+      {step:"03",title:"鸿蒙架构",desc:"规划鸿蒙原生功能：原子桌面卡实现无需启动App的即时访问；BLE预加载实现<200毫秒锁控响应；分布式数据同步实现实时空位状态更新"},
+      {step:"04",title:"比赛交付",desc:"在比赛时限内完成：可运行HAP安装包、设计原型、演示视频（BLE锁控、手机屏幕、云服务器控制）及完整产品文档"},
     ],
     features:[
       {title:"Atomic Desktop Service Cards (元服务卡片)",desc:"4×2 and 4×4 HarmonyOS home-screen cards give instant access to space status, lock control, and AI recommendations — without opening the app. Eliminates the biggest UX friction point in the parking journey."},
@@ -650,10 +944,16 @@ const PROJECT_DETAILS = {
       {title:"BLE IoT Smart Lock Control",desc:"HarmonyOS pre-loads Bluetooth device drivers before the user reaches the space, enabling sub-200ms lock response. Multi-layer security protects unauthorised access. Supports phone, car infotainment, and tablet simultaneously via multi-device collaboration."},
       {title:"Space Owner Revenue Dashboard",desc:"Owners set sharing time slots; AI auto-optimises based on historical occupancy patterns. Real-time revenue tracking, order tracing, and curve analytics give owners full visibility into their passive income."},
     ],
+    featuresZh:[
+      {title:"原子桌面服务卡（元服务卡片）",desc:"4×2和4×4规格的鸿蒙桌面卡实现对车位状态、锁控和AI推荐的即时访问——无需启动App。消除停车旅程中最大的用户体验摩擦点。"},
+      {title:"AI智能停车推荐",desc:"整合实时空位、步行距离、定价和用户偏好历史，推荐最佳可用车位。推荐在驾驶者接近时实时更新。"},
+      {title:"BLE物联网智能锁控",desc:"鸿蒙在用户到达车位前预加载蓝牙设备驱动，实现200毫秒以内的锁控响应。多层安全机制防止未授权访问。通过多设备协同，同时支持手机、车载大屏和平板操控。"},
+      {title:"车位所有者收益看板",desc:"所有者设置共享时段；AI基于历史占用模式自动优化排班。实时收益追踪、订单追溯和曲线分析，为所有者提供被动收入的全面可视化。"},
+    ],
     images:[
-      {src:"./img/tingya/ai_search.png", cap:"AI parking radar — 328 available spaces nearby, one-tap view"},
-      {src:"./img/tingya/ai_lock.png",   cap:"AI smart lock selection — shared & available spaces at a glance"},
-      {src:"./img/tingya/carscreen.png", cap:"Multi-device: 停鸭 atomic card on car infotainment screen"},
+      {src:"./img/tingya/ai_search.png", cap:"AI parking radar — 328 available spaces nearby, one-tap view",capZh:"AI停车雷达 — 附近328个可用车位，一键查看"},
+      {src:"./img/tingya/ai_lock.png",   cap:"AI smart lock selection — shared & available spaces at a glance",capZh:"AI智能锁选择 — 共享与可用车位一目了然"},
+      {src:"./img/tingya/carscreen.png", cap:"Multi-device: 停鸭 atomic card on car infotainment screen",capZh:"多设备协同：停鸭原子卡呈现于车载中控屏"},
     ],
     prd:{
       feature:"Atomic Desktop Card — Real-time Space Status & One-tap Lock Control",
@@ -672,7 +972,24 @@ const PROJECT_DETAILS = {
       ],
       priority:"P0 — Core Competition Differentiator",effort:"Delivered within 72-hour Geekathon sprint",
     },
-    impact:[{v:"199M",l:"Space Deficit Addressed"},{v:"2-sided",l:"Marketplace"},{v:"<200ms",l:"Lock Response"},{v:"No App",l:"Launch Needed"},{v:"3",l:"Revenue Models"},{v:"2023",l:"Geekathon Finalist"}],
+    prdZh:{
+      feature:"原子桌面卡 — 实时车位状态与一键锁控",
+      stories:[
+        {as:"驾车者抵达预约车位时",want:"直接从桌面卡解锁停车锁，无需解锁手机并打开App",so:"我可以快速安全地停车，不会因分心操作手机而产生安全隐患"},
+        {as:"停车位所有者",want:"在桌面卡上一眼看到当前车位状态和今日收益",so:"我无需每次都打开App即可被动监控我的车位"},
+        {as:"驾车者寻找附近停车位时",want:"打开手机靠近目的地时，桌面卡能显示AI推荐的可用车位",so:"我可以在几秒内做出停车决策，无需任何搜索摩擦"},
+      ],
+      criteria:[
+        "桌面卡须通过分布式数据同步实时反映车位状态，数据延迟<30秒",
+        "从卡片发起的锁控操作须在200毫秒内完成（BLE触发→锁具响应）",
+        "卡片须支持鸿蒙桌面4×2（紧凑型）和4×4（完整型）两种尺寸",
+        "当手机位置变化超过500米时，卡片上的AI推荐须自动更新",
+        "卡片交互须无需启动完整App即可运行——首次使用的用户无需安装App",
+        "所有锁控事件须记录设备ID、时间戳和用户身份，建立安全审计记录",
+      ],
+      priority:"P0 — 核心竞赛差异化功能",effort:"在72小时极客马拉松冲刺中完成交付",
+    },
+    impact:[{v:"199M",l:"Space Deficit Addressed",lz:"车位缺口"},{v:"2-sided",l:"Marketplace",lz:"双边市场"},{v:"<200ms",l:"Lock Response",lz:"锁控响应"},{v:"No App",l:"Launch Needed",lz:"无需启动"},{v:"3",l:"Revenue Models",lz:"收益模式"},{v:"2023",l:"Geekathon Finalist",lz:"极客马拉松"}],
     tech:["HarmonyOS (ArkUI)","Atomic Services (元服务)","BLE 5.0","Distributed Data Mgmt","Cloud Server","Figma"],
   },
 };
@@ -684,17 +1001,21 @@ const PROJECT_DETAILS = {
    tags: pill tags shown at the bottom of each entry
    ================================================================ */
 const EXP = [
-  {co:"Shopee",role:"Product Management Intern — Monee Credit",period:"Jun 2025 – Dec 2025",loc:"Singapore",
+  {co:"Shopee",role:"Product Management Intern — Monee Credit",roleZh:"产品管理实习生 — Monee Credit",period:"Jun 2025 – Dec 2025",loc:"Singapore",locZh:"新加坡",
    bullets:["Managed credit funding platforms (BNPL, Buyer & Seller Cash Loan) across SG, VN, PH & BR","Designed Dynamic Routing: evolved fund allocation from static rules to a data-driven framework with dynamic funder weight adjustment based on performance signals","Contributed to Settlement & Reconciliation Platform, improving cross-market fund flow transparency","Conducted data analysis on funding utilisation, partner performance & repayment behaviour"],
+   bulletsZh:["管理跨新加坡、越南、菲律宾和巴西四个市场的信贷资金平台（BNPL、买家及卖家现金贷）","设计动态路由：将资金分配从静态规则升级为基于性能信号的动态资方权重调整数据驱动框架","参与清算与对账平台建设，提升跨市场资金流动透明度","对资金使用率、合作方表现及还款行为进行数据分析"],
    tags:["Fintech","Credit Platforms","Dynamic Routing","Data Analysis"]},
-  {co:"Xingji Technology",role:"Product Manager",period:"May 2022 – Aug 2024",loc:"Shanghai, China",
+  {co:"Xingji Technology",role:"Product Manager",roleZh:"产品经理",period:"May 2022 – Aug 2024",loc:"Shanghai, China",locZh:"中国上海",
    bullets:["Owned ToC smart parking app ParkingPilot: search, reservation, order lifecycle & cashless payment","Introduced AI-assisted parking recommendation based on user intent, behaviour & real-time availability","Led ToB Parking SaaS platform: 20+ clients, 50+ lots, +40% efficiency & +25% revenue","Designed AI-assisted dispute automation module with rule-based + human-in-the-loop workflows"],
+   bulletsZh:["负责消费端智慧停车App ParkingPilot：搜索、预约、订单生命周期及无现金支付全流程","基于用户意图、行为和实时空位数据，引入AI辅助停车推荐","主导ToB停车SaaS平台：服务20余家B2B客户、50余个停车场，效率提升40%，收入增长25%","设计AI辅助纠纷自动化模块，采用规则引擎+人工在环工作流"],
    tags:["Consumer App","SaaS","AI Features","IoT"]},
-  {co:"NIO Inc.",role:"Assistant Product Manager",period:"Jul 2021 – May 2022",loc:"Shanghai, China",
+  {co:"NIO Inc.",role:"Assistant Product Manager",roleZh:"助理产品经理",period:"Jul 2021 – May 2022",loc:"Shanghai, China",locZh:"中国上海",
    bullets:["Owned vehicle control & mobile digital key features in NIO App for 100K+ vehicles","Led optimisation of BLE/UWB digital key triggering (auto-unlock/lock) — contributed to >$50M in sales","Designed decision rules combining Bluetooth signal strength, positioning confidence & user behaviour","Collaborated with 20+ engineers & vendors to achieve millimeter-level UWB positioning accuracy"],
+   bulletsZh:["负责NIO App中针对10万辆以上车辆的车控与移动数字钥匙功能","主导BLE/UWB数字钥匙触发（自动解/上锁）优化——贡献逾5000万美元销售额","设计融合蓝牙信号强度、定位置信度和用户行为的决策规则","与20余名工程师和供应商协作，实现UWB毫米级定位精度"],
    tags:["Automotive","BLE/UWB","Digital Key","System Design"]},
-  {co:"NIO Inc.",role:"Software Engineer Intern",period:"May 2020 – Jun 2021",loc:"Shanghai, China",
+  {co:"NIO Inc.",role:"Software Engineer Intern",roleZh:"软件工程师实习生",period:"May 2020 – Jun 2021",loc:"Shanghai, China",locZh:"中国上海",
    bullets:["Developed mobile digital key & vehicle control modules with BLE communication","Supported near-field positioning using Kalman Filters and ML-based signal processing","Performed data analysis & visualisation in Python to evaluate positioning performance"],
+   bulletsZh:["开发搭载BLE通信的移动数字钥匙和车控模块","使用卡尔曼滤波和基于ML的信号处理支持近场定位","使用Python进行数据分析与可视化，评估定位性能"],
    tags:["BLE","Python","Signal Processing","Mobile Dev"]},
 ];
 
@@ -703,9 +1024,15 @@ const EXP = [
    group: column heading  |  items: bullet list inside
    ================================================================ */
 const SKILLS = [
-  {group:"Product",items:["Product Roadmap & Prioritisation","PRD & User Stories","System Design & SDLC","Cross-functional Leadership","Agile / Sprint Planning","KPI Tracking & OKRs"]},
-  {group:"AI & Technology",items:["AI Feature Design & Scoping","Transformer Architecture Fundamentals","Data-to-Decision Pipelines","BLE / UWB System Design","Rule-based + ML Decision Logic","Human-in-the-loop Workflows"]},
-  {group:"Data & Tools",items:["SQL & Python Analytics","Java (Proficient)","Figma & Prototyping","JIRA & Confluence","Xmind","Google Suite / Office"]},
+  {group:"Product",groupZh:"产品能力",
+   items:["Product Roadmap & Prioritisation","PRD & User Stories","System Design & SDLC","Cross-functional Leadership","Agile / Sprint Planning","KPI Tracking & OKRs"],
+   itemsZh:["产品路线图与优先级排序","PRD与用户故事","系统设计与SDLC","跨职能领导力","敏捷/Sprint规划","KPI追踪与OKR管理"]},
+  {group:"AI & Technology",groupZh:"AI与技术",
+   items:["AI Feature Design & Scoping","Transformer Architecture Fundamentals","Data-to-Decision Pipelines","BLE / UWB System Design","Rule-based + ML Decision Logic","Human-in-the-loop Workflows"],
+   itemsZh:["AI功能设计与范围界定","Transformer架构基础","数据决策流水线","BLE/UWB系统设计","规则引擎+ML决策逻辑","人工在环工作流"]},
+  {group:"Data & Tools",groupZh:"数据与工具",
+   items:["SQL & Python Analytics","Java (Proficient)","Figma & Prototyping","JIRA & Confluence","Xmind","Google Suite / Office"],
+   itemsZh:["SQL与Python数据分析","Java（熟练）","Figma与原型设计","JIRA与Confluence","Xmind","Google Suite/Office"]},
 ];
 
 /* ================================================================
@@ -716,9 +1043,9 @@ const SKILLS = [
      href:"https://wa.me/65...", action:"Chat on WhatsApp", copy:"+65..."}
    ================================================================ */
 const CONTACTS = [
-  {Icon:IcoEmail,  label:"Email",    value:"ChloeKong599@gmail.com",                              href:"mailto:ChloeKong599@gmail.com",                               action:"Send email",       copy:"ChloeKong599@gmail.com"},
-  {Icon:IcoPhoneC, label:"Phone",    value:"+65 9611 5522",                                       href:"tel:+6596115522",                                            action:"Call now",          copy:"+6596115522"},
-  {Icon:IcoLI,     label:"LinkedIn", value:"xinyi-kong-435145364",                                href:"https://www.linkedin.com/in/xinyi-kong-435145364/",           action:"View profile",      copy:"linkedin.com/in/xinyi-kong-435145364"},
+  {Icon:IcoEmail,  label:"Email",    labelZh:"邮箱",    value:"ChloeKong599@gmail.com",  href:"mailto:ChloeKong599@gmail.com",                     action:"Send email",  actionZh:"发送邮件",  copy:"ChloeKong599@gmail.com"},
+  {Icon:IcoPhoneC, label:"Phone",    labelZh:"电话",    value:"+65 9611 5522",           href:"tel:+6596115522",                                   action:"Call now",    actionZh:"立即拨打",  copy:"+6596115522"},
+  {Icon:IcoLI,     label:"LinkedIn", labelZh:"LinkedIn",value:"xinyi-kong-435145364",   href:"https://www.linkedin.com/in/xinyi-kong-435145364/", action:"View profile",actionZh:"查看主页",  copy:"linkedin.com/in/xinyi-kong-435145364"},
 ];
 
 /* ================================================================
@@ -746,56 +1073,53 @@ function useReveal() {
   },[]);
 }
 
-/* ── Nav ──
-   ✏️  Edit nav link labels in the `links` array below.
-       To add a section: append {id:'section-id', l:'Label'} */
+/* ── Nav ── */
 function Nav({active}) {
+  const {lang,toggle}=useLangCtx();
+  const u=UI[lang];
   const [sc,setSc]=useState(false),[prog,setProg]=useState(0);
   useEffect(()=>{
     const h=()=>{setSc(window.scrollY>60);const dh=document.documentElement.scrollHeight-window.innerHeight;setProg(dh>0?(window.scrollY/dh)*100:0);};
     window.addEventListener('scroll',h);return()=>window.removeEventListener('scroll',h);
   },[]);
-  const links=[{id:'about',l:'About'},{id:'experience',l:'Experience'},{id:'projects',l:'Projects'},{id:'skills',l:'Skills'}];
+  const ids=['about','experience','projects','skills'];
   return <>
     <div className="progress-bar" style={{width:`${prog}%`}}/>
     <nav className={sc?'scrolled':''}>
       <a href="#hero" className="nav-logo">XK<span className="dot">.</span></a>
       <ul className="nav-links">
-        {links.map(({id,l})=><li key={id}><a href={`#${id}`} className={active===id?'active':''}>{l}</a></li>)}
-        <li><a href="#contact" className="nav-pill">Contact</a></li>
+        {ids.map((id,i)=><li key={id}><a href={`#${id}`} className={active===id?'active':''}>{u.nav[i]}</a></li>)}
+        <li><a href="#contact" className="nav-pill">{u.navContact}</a></li>
+        <li><button className="lang-btn" onClick={toggle}><span className={lang==='en'?'lb-on':'lb-off'}>EN</span><span className="lb-sep">/</span><span className={lang==='zh'?'lb-on':'lb-off'}>中文</span></button></li>
       </ul>
     </nav>
   </>;
 }
 
-/* ── Hero ──
-   ✏️  Edit eyebrow, name, tagline, stats, and button text below. */
+/* ── Hero ── */
 function Hero() {
+  const lang=useLang();const u=UI[lang].hero;
+  const statVals=["4+","100K+",">$50M"];
   return (
     <div id="hero">
       <div className="hero-grid-bg"/><div className="hero-glow"/>
       <div className="hero-left">
-        {/* ✏️ Eyebrow line under the logo */}
-        <div className="hero-eyebrow">AI Product Manager · Singapore</div>
-        {/* ✏️ Your name — first line plain, second line accented */}
+        <div className="hero-eyebrow">{u.eyebrow}</div>
         <h1 className="hero-name">XINYI<br/><span className="acc">KONG</span><span className="dot">.</span></h1>
-        {/* ✏️ Hero tagline / one-liner */}
-        <p className="hero-tagline">I bridge AI, data, and user experience to ship products that create real, measurable impact — across fintech, automotive, and smart mobility.</p>
-        {/* ✏️ Three headline stats — edit v (value) and l (label) */}
+        <p className="hero-tagline">{u.tagline}</p>
         <div className="hero-stats">
-          {[{v:"4+",l:"Years in Product"},{v:"100K+",l:"Users Impacted"},{v:">$50M",l:"Revenue Impact"}].map((s,i)=>(
-            <div className="h-stat" key={i}><span className="h-stat-val">{s.v}</span><span className="h-stat-lbl">{s.l}</span></div>
+          {statVals.map((v,i)=>(
+            <div className="h-stat" key={i}><span className="h-stat-val">{v}</span><span className="h-stat-lbl">{u.stats[i]}</span></div>
           ))}
         </div>
-        {/* ✏️ CTA buttons — edit text and href targets */}
         <div className="hero-btns">
-          <a href="#experience" className="btn-solid">View Experience →</a>
-          <a href="#contact" className="btn-ghost">Say Hello</a>
+          <a href="#experience" className="btn-solid">{u.btn1}</a>
+          <a href="#contact" className="btn-ghost">{u.btn2}</a>
         </div>
       </div>
       <div className="hero-right">
         {KEYWORDS.map((kw,i)=>(
-          <span key={i} className={`kw ${kw.cls}`} style={{top:kw.top,left:kw.left,animation:`${kw.anim} ${kw.dur} ${kw.delay} ease-in-out infinite`}}>{kw.text}</span>
+          <span key={i} className={`kw ${kw.cls}`} style={{top:kw.top,left:kw.left,animation:`${kw.anim} ${kw.dur} ${kw.delay} ease-in-out infinite`}}>{lang==='zh'?kw.textZh:kw.text}</span>
         ))}
       </div>
     </div>
@@ -831,37 +1155,30 @@ function ProjectPreview({onDetail}) {
   );
 }
 
-/* ── About ──
-   ✏️  Edit bio paragraphs and the three feature cards below. */
+/* ── About ── */
 function About() {
+  const lang=useLang();const u=UI[lang].about;
+  const icons=[IcoBrain,IcoLayers,IcoPhone2];
   return <>
     <hr className="divider"/>
     <section id="about">
       <div className="s-wrap">
-        <div className="s-eyebrow">About</div>
+        <div className="s-eyebrow">{u.eyebrow}</div>
         <div className="about-grid">
           <div>
-            <h2 className="s-title">System thinker.<br/><span className="acc">Product builder.</span></h2>
-            {/* ✏️ About bio — edit paragraphs freely */}
+            <h2 className="s-title">{u.h1}<br/><span className="acc">{u.h2}</span></h2>
             <div className="about-bio reveal">
-              <p>I'm a <strong>hands-on Product Manager</strong> with a Computer Science foundation and a deep interest in AI. I have strong system thinking and am good at breaking down business goals, technical capabilities, and data into <strong>clear, executable product solutions.</strong></p>
-              <p>I have a solid understanding of AI fundamentals — including Transformer architectures and end-to-end data-to-decision workflows — and the ability to <strong>translate them into real, deliverable products.</strong></p>
-              <p>My experience spans AI-driven products, consumer mobile apps, and SaaS platforms across automotive tech, smart mobility, and fintech. I enjoy collaborating with diverse teams to build products that <strong>create real impact.</strong></p>
-              <p style={{marginTop:'1.25rem'}}>Currently pursuing M.Sc. Project Management at <strong>Nanyang Technological University, Singapore.</strong></p>
+              {u.bio.map((p,i)=><p key={i} style={i===3?{marginTop:'1.25rem'}:{}} dangerouslySetInnerHTML={{__html:p}}/>)}
             </div>
           </div>
-          {/* ✏️ Three feature cards — title + desc */}
           <div className="about-cards">
-            {[
-              {Icon:IcoBrain,  title:"AI Product Design",        desc:"Transformer fundamentals, data-to-decision pipelines, AI-assisted ranking & recommendation, human-in-the-loop design."},
-              {Icon:IcoLayers, title:"SaaS & Platform Products", desc:"B2B platform architecture, modular system design, cross-market scalability, automation-first workflows."},
-              {Icon:IcoPhone2, title:"Consumer Apps & IoT",      desc:"End-to-end user journeys, BLE/UWB positioning systems, mobile-first design, real-time state management."},
-            ].map((c,i)=>(
+            {u.cards.map((c,i)=>{const Icon=icons[i];return(
               <div className="a-card reveal" key={i} style={{transitionDelay:`${i*.1}s`}}>
-                <div className="a-card-icon"><c.Icon/></div>
+                <div className="a-card-icon"><Icon/></div>
                 <div><div className="a-title">{c.title}</div><div className="a-desc">{c.desc}</div></div>
               </div>
-            ))}
+            );})}
+
           </div>
         </div>
       </div>
@@ -871,20 +1188,21 @@ function About() {
 
 /* ── Experience ── */
 function Experience() {
+  const lang=useLang();const u=UI[lang].exp;
   return <>
     <hr className="divider"/>
     <section id="experience">
       <div className="s-wrap">
-        <div className="s-eyebrow">Experience</div>
-        <h2 className="s-title">Where I've <span className="acc">built.</span></h2>
+        <div className="s-eyebrow">{u.eyebrow}</div>
+        <h2 className="s-title">{u.h1}<span className="acc">{u.h2}</span></h2>
         <div className="timeline">
           {EXP.map((e,i)=>(
             <div className="tl-item reveal" key={i} style={{transitionDelay:`${i*.12}s`}}>
               <div className="tl-dot"/>
-              <div className="tl-meta">{e.period} · {e.loc}</div>
+              <div className="tl-meta">{e.period} · {lang==='zh'?e.locZh:e.loc}</div>
               <div className="tl-co">{e.co}</div>
-              <div className="tl-role">{e.role}</div>
-              <ul className="tl-list">{e.bullets.map((b,j)=><li key={j}>{b}</li>)}</ul>
+              <div className="tl-role">{lang==='zh'?e.roleZh:e.role}</div>
+              <ul className="tl-list">{(lang==='zh'?e.bulletsZh:e.bullets).map((b,j)=><li key={j}>{b}</li>)}</ul>
               <div className="tl-tags">{e.tags.map(t=><span className="tl-tag" key={t}>{t}</span>)}</div>
             </div>
           ))}
@@ -896,34 +1214,35 @@ function Experience() {
 
 /* ── Projects (full) ── */
 function ProjectsFull({onDetail}) {
+  const lang=useLang();const u=UI[lang].proj;
   return <>
     <hr className="divider"/>
     <section id="projects">
       <div className="s-wrap">
-        <div className="s-eyebrow">Projects</div>
-        <h2 className="s-title">What I've <span className="acc">shipped.</span></h2>
+        <div className="s-eyebrow">{u.eyebrow}</div>
+        <h2 className="s-title">{u.h1}<span className="acc">{u.h2}</span></h2>
         <div className="proj-grid-full">
           {PROJECTS.map((p,i)=>(
             <div className="proj-card-full reveal" key={i} style={{transitionDelay:`${i*.1}s`}}>
               <div className="pcf-img">
-                <img src={p.img.startsWith('.')||p.img.startsWith('/')?p.img:`https://picsum.photos/seed/${p.img}/640/340`} alt={p.title}/>
+                <img src={p.img.startsWith('.')||p.img.startsWith('/')?p.img:`https://picsum.photos/seed/${p.img}/640/340`} alt={lang==='zh'?p.titleZh:p.title}/>
                 <span className="pcf-img-tag">{p.tags[0]}</span>
               </div>
               <div className="pcf-header">
                 <div>
                   <div className="pcf-num">{p.id}</div>
-                  <div className="pcf-title">{p.title}</div>
-                  <div className="pcf-co">{p.co}</div>
+                  <div className="pcf-title">{lang==='zh'?p.titleZh:p.title}</div>
+                  <div className="pcf-co">{lang==='zh'?p.coZh:p.co}</div>
                 </div>
                 <div className="pcf-icon"><p.Icon/></div>
               </div>
-              <div className="pcf-desc">{p.desc}</div>
+              <div className="pcf-desc">{lang==='zh'?p.descZh:p.desc}</div>
               <div className="pcf-footer">
                 <div style={{display:'flex',gap:'.6rem',alignItems:'center',flexWrap:'wrap'}}>
-                  <span className="pcf-badge">{p.badge}</span>
+                  <span className="pcf-badge">{lang==='zh'?p.badgeZh:p.badge}</span>
                   <div className="pcf-tags">{p.tags.map(t=><span className="pcf-tag" key={t}>{t}</span>)}</div>
                 </div>
-                <button className="btn-detail" onClick={()=>onDetail(p.id)}>More Details <span className="d-arr">→</span></button>
+                <button className="btn-detail" onClick={()=>onDetail(p.id)}>{u.more} <span className="d-arr">→</span></button>
               </div>
             </div>
           ))}
@@ -1042,51 +1361,50 @@ function PhotoWall() {
   </>;
 }
 
-/* ── Skills ──
-   ✏️  Edit languages, certifications, and education cards below.
-       Skill group data lives in the SKILLS array above. */
+/* ── Skills ── */
 function Skills() {
+  const lang=useLang();const u=UI[lang].skills;
+  const EDU=[
+    {period:"Jan 2025 – Jun 2026",
+     degree:"M.Sc. Project Management",degreeZh:"项目管理理学硕士",
+     school:"Nanyang Technological University · Singapore",schoolZh:"南洋理工大学 · 新加坡",
+     abbr:"NTU",logoColor:"#C8102E",logoBg:"#fff5f5",
+     logoUrl:"https://upload.wikimedia.org/wikipedia/en/f/f2/NTU_Logo.svg"},
+    {period:"Sep 2017 – Jun 2021",
+     degree:"B.E. Computer Science & Technology",degreeZh:"计算机科学与技术工学学士",
+     school:"Northeast Agricultural University · China",schoolZh:"东北农业大学 · 中国",
+     abbr:"NEAU",logoColor:"#1B6B2F",logoBg:"#f0fff4",logoUrl:null},
+  ];
   return <>
     <hr className="divider"/>
     <section id="skills">
       <div className="s-wrap">
-        <div className="s-eyebrow">Skills</div>
-        <h2 className="s-title">How I <span className="acc">work.</span></h2>
+        <div className="s-eyebrow">{u.eyebrow}</div>
+        <h2 className="s-title">{u.h1}<span className="acc">{u.h2}</span></h2>
         <div className="skills-grid">
           {SKILLS.map((sg,i)=>(
             <div className="sg reveal" key={i} style={{transitionDelay:`${i*.1}s`}}>
-              <div className="sg-head">{sg.group}</div>
-              <ul className="sg-list">{sg.items.map(s=><li key={s}>{s}</li>)}</ul>
+              <div className="sg-head">{lang==='zh'?sg.groupZh:sg.group}</div>
+              <ul className="sg-list">{(lang==='zh'?sg.itemsZh:sg.items).map(s=><li key={s}>{s}</li>)}</ul>
             </div>
           ))}
         </div>
         <div className="other-strip reveal">
-          <div className="other-head">Languages & Certifications</div>
+          <div className="other-head">{u.langCerts}</div>
           <div className="other-tags">
-            {/* ✏️ Languages & certifications — add/remove strings */}
-            {['English','Mandarin','Cantonese','CCF CSP Certified','Computer Level II','3 Software Copyrights','1 Patent'].map(s=><span className="o-tag" key={s}>{s}</span>)}
+            {u.langItems.map(s=><span className="o-tag" key={s}>{s}</span>)}
           </div>
         </div>
         <div style={{marginTop:'4rem'}}>
-          <div className="s-eyebrow" style={{marginBottom:'1.5rem'}}>Education</div>
-          {/* ✏️ Education entries — edit period, degree, school
-                logoUrl: Wikipedia SVG or any image URL; set null for text badge
-                abbr / logoColor / logoBg: controls the fallback text badge */}
+          <div className="s-eyebrow" style={{marginBottom:'1.5rem'}}>{u.edu}</div>
           <div className="edu-grid">
-            {[
-              {period:"Jan 2025 – Jun 2026",degree:"M.Sc. Project Management",school:"Nanyang Technological University · Singapore",
-               abbr:"NTU",logoColor:"#C8102E",logoBg:"#fff5f5",
-               logoUrl:"https://upload.wikimedia.org/wikipedia/en/f/f2/NTU_Logo.svg"},
-              {period:"Sep 2017 – Jun 2021",degree:"B.E. Computer Science & Technology",school:"Northeast Agricultural University · China",
-               abbr:"NEAU",logoColor:"#1B6B2F",logoBg:"#f0fff4",
-               logoUrl:null},
-            ].map((ed,i)=>(
+            {EDU.map((ed,i)=>(
               <div className="edu-card reveal" key={i} style={{transitionDelay:`${i*.12}s`}}>
                 <div className="edu-card-top">
                   <div>
                     <div className="edu-period">{ed.period}</div>
-                    <div className="edu-degree">{ed.degree}</div>
-                    <div className="edu-school">{ed.school}</div>
+                    <div className="edu-degree">{lang==='zh'?ed.degreeZh:ed.degree}</div>
+                    <div className="edu-school">{lang==='zh'?ed.schoolZh:ed.school}</div>
                   </div>
                   {ed.logoUrl
                     ? <img src={ed.logoUrl} alt={ed.abbr} className="edu-emblem" style={{background:ed.logoBg,padding:'7px',border:`2px solid ${ed.logoColor}22`}} onError={e=>{e.target.style.display='none';e.target.nextSibling.style.display='flex';}}/>
@@ -1104,29 +1422,29 @@ function Skills() {
 
 /* ── Contact ── */
 function Contact() {
+  const lang=useLang();const u=UI[lang].contact;
   const [toast,setToast]=useState('');
-  const copy=(text,label)=>{navigator.clipboard.writeText(text).then(()=>{setToast(`${label} copied!`);setTimeout(()=>setToast(''),2000);});};
+  const copy=(text,label)=>{navigator.clipboard.writeText(text).then(()=>{setToast(UI[lang].toast(label));setTimeout(()=>setToast(''),2000);});};
   return <>
     <hr className="divider"/>
     <div id="contact">
       <div className="contact-glow"/>
       <div className="contact-inner">
-        {/* ✏️ Contact section heading and subtext */}
-        <div className="c-eyebrow reveal">Let's Connect</div>
-        <h2 className="c-title reveal">Ready to build<br/>something <span className="acc">great?</span></h2>
-        <p className="c-body reveal">I'm always open to interesting product conversations, collaboration opportunities, or a good chat about AI and product design.</p>
+        <div className="c-eyebrow reveal">{u.eyebrow}</div>
+        <h2 className="c-title reveal">{u.h1}<br/>{u.h2}<span className="acc">{u.h3}</span></h2>
+        <p className="c-body reveal">{u.body}</p>
         <div className="c-cards reveal">
           {CONTACTS.map((c,i)=>(
             <div key={i} style={{display:'flex',flexDirection:'column',gap:'.5rem'}}>
               <a href={c.href} className="c-card" target={c.label==='LinkedIn'?'_blank':undefined} rel="noopener noreferrer">
                 <div className="c-card-icon"><c.Icon/></div>
-                <div className="c-card-label">{c.label}</div>
+                <div className="c-card-label">{lang==='zh'?c.labelZh:c.label}</div>
                 <div className="c-card-value">{c.value}</div>
-                <div className="c-card-action">{c.action} →</div>
+                <div className="c-card-action">{lang==='zh'?c.actionZh:c.action} →</div>
               </a>
-              <button className="copy-btn" onClick={()=>copy(c.copy,c.label)}>
+              <button className="copy-btn" onClick={()=>copy(c.copy,lang==='zh'?c.labelZh:c.label)}>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-                Copy
+                {u.copy}
               </button>
             </div>
           ))}
@@ -1139,51 +1457,57 @@ function Contact() {
 
 /* ── Project Detail Overlay ── */
 function ProjectDetail({id,onClose}) {
+  const lang=useLang();const u=UI[lang].detail;
   const d=PROJECT_DETAILS[id];
   useEffect(()=>{document.body.style.overflow='hidden';return()=>{document.body.style.overflow='';};}, []);
   if(!d) return null;
+  const title=t(d,'title',lang);
+  const prd=t(d,'prd',lang);
+  const proc=t(d,'process',lang);
+  const feats=t(d,'features',lang);
+  const bg=t(d,'background',lang);
   return (
     <div className="detail-overlay open">
       <div className="detail-back">
-        <button className="back-btn" onClick={onClose}>← Back</button>
-        <span className="back-crumb">Portfolio<span className="sep">/</span><span className="cur">{d.title}</span></span>
+        <button className="back-btn" onClick={onClose}>{u.back}</button>
+        <span className="back-crumb">{u.portfolio}<span className="sep">/</span><span className="cur">{title}</span></span>
       </div>
-      <img className="detail-hero-img" src={d.heroImg} alt={d.title}/>
+      <img className="detail-hero-img" src={d.heroImg} alt={title}/>
       <div className="detail-body">
         <div className="detail-meta">
-          <span className="detail-meta-pill green">{d.role}</span>
+          <span className="detail-meta-pill green">{t(d,'role',lang)}</span>
           <span className="detail-meta-pill">{d.company}</span>
           <span className="detail-meta-pill">{d.period}</span>
           {d.tags.map(t=><span className="detail-meta-pill" key={t}>{t}</span>)}
         </div>
-        <h1 className="detail-title">{d.title}</h1>
-        <p className="detail-tagline">{d.tagline}</p>
+        <h1 className="detail-title">{title}</h1>
+        <p className="detail-tagline">{t(d,'tagline',lang)}</p>
 
         {/* Overview */}
         <div className="detail-section">
-          <div className="detail-section-title"><IcoTarget/>Overview</div>
-          <p className="detail-para">{d.overview}</p>
+          <div className="detail-section-title"><IcoTarget/>{u.overview}</div>
+          <p className="detail-para">{t(d,'overview',lang)}</p>
         </div>
 
         {/* Background */}
         <div className="detail-section">
-          <div className="detail-section-title"><IcoFlag/>Background & Problem</div>
-          {d.background.map((p,i)=><p className="detail-para" key={i}>{p}</p>)}
+          <div className="detail-section-title"><IcoFlag/>{u.background}</div>
+          {bg.map((p,i)=><p className="detail-para" key={i}>{p}</p>)}
         </div>
 
         {/* My Role */}
         <div className="detail-section">
-          <div className="detail-section-title"><IcoStar/>My Role</div>
-          <p className="detail-para">{d.myRole}</p>
+          <div className="detail-section-title"><IcoStar/>{u.role}</div>
+          <p className="detail-para">{t(d,'myRole',lang)}</p>
         </div>
 
         {/* Process */}
         <div className="detail-section">
-          <div className="detail-section-title"><IcoCog/>Approach</div>
+          <div className="detail-section-title"><IcoCog/>{u.approach}</div>
           <div className="process-steps">
-            {d.process.map((p,i)=>(
+            {proc.map((p,i)=>(
               <div className="ps" key={i}>
-                <div className="ps-step">Step {p.step}</div>
+                <div className="ps-step">{u.step} {p.step}</div>
                 <div className="ps-title">{p.title}</div>
                 <div className="ps-desc">{p.desc}</div>
               </div>
@@ -1193,9 +1517,9 @@ function ProjectDetail({id,onClose}) {
 
         {/* Features */}
         <div className="detail-section">
-          <div className="detail-section-title"><IcoZap/>Key Features</div>
+          <div className="detail-section-title"><IcoZap/>{u.features}</div>
           <div className="feat-grid">
-            {d.features.map((f,i)=>(
+            {feats.map((f,i)=>(
               <div className="feat-card" key={i}>
                 <div className="feat-title">{f.title}</div>
                 <div className="feat-desc">{f.desc}</div>
@@ -1208,13 +1532,13 @@ function ProjectDetail({id,onClose}) {
         <div className="detail-section">
           <div className="detail-section-title">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-            Screenshots & Design
+            {u.screenshots}
           </div>
           <div className={`img-gallery${d.images.length===2?' two':''}`}>
             {d.images.map((img,i)=>(
               <div key={i}>
-                <div className="gallery-img"><img src={img.src} alt={img.cap}/></div>
-                <div className="gallery-cap">{img.cap}</div>
+                <div className="gallery-img"><img src={img.src} alt={t(img,'cap',lang)}/></div>
+                <div className="gallery-cap">{t(img,'cap',lang)}</div>
               </div>
             ))}
           </div>
@@ -1224,35 +1548,37 @@ function ProjectDetail({id,onClose}) {
         <div className="detail-section">
           <div className="detail-section-title">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-            PRD Excerpt
+            {u.prd}
           </div>
           <div className="prd-box">
-            <div className="prd-feature">Feature: {d.prd.feature}</div>
+            <div className="prd-feature">{u.feature} {prd.feature}</div>
             <div className="prd-block">
-              <div className="prd-block-title">User Stories</div>
-              {d.prd.stories.map((s,i)=>(
-                <div className="us-row" key={i}>As a <span>{s.as}</span>, I want to {s.want}, so that {s.so}.</div>
+              <div className="prd-block-title">{u.stories}</div>
+              {prd.stories.map((s,i)=>(
+                lang==='zh'
+                  ? <div className="us-row" key={i}>{u.as}<span>{s.as}</span>{u.want}{s.want}{u.so}{s.so}。</div>
+                  : <div className="us-row" key={i}>As a <span>{s.as}</span>, I want to {s.want}, so that {s.so}.</div>
               ))}
             </div>
             <div className="prd-block">
-              <div className="prd-block-title">Acceptance Criteria</div>
-              <ul className="ac-list">{d.prd.criteria.map((c,i)=><li key={i}>{c}</li>)}</ul>
+              <div className="prd-block-title">{u.criteria}</div>
+              <ul className="ac-list">{prd.criteria.map((c,i)=><li key={i}>{c}</li>)}</ul>
             </div>
             <div className="prd-meta">
-              <div className="prd-meta-item"><span className="prd-meta-label">Priority</span><span className="prd-meta-val">{d.prd.priority}</span></div>
-              <div className="prd-meta-item"><span className="prd-meta-label">Effort Estimate</span><span className="prd-meta-val">{d.prd.effort}</span></div>
+              <div className="prd-meta-item"><span className="prd-meta-label">{u.priority}</span><span className="prd-meta-val">{prd.priority}</span></div>
+              <div className="prd-meta-item"><span className="prd-meta-label">{u.effort}</span><span className="prd-meta-val">{prd.effort}</span></div>
             </div>
           </div>
         </div>
 
         {/* Impact */}
         <div className="detail-section">
-          <div className="detail-section-title"><IcoTrend/>Impact & Results</div>
+          <div className="detail-section-title"><IcoTrend/>{u.impact}</div>
           <div className="impact-grid">
             {d.impact.map((m,i)=>(
               <div className="impact-card" key={i}>
                 <div className="impact-val">{m.v}</div>
-                <div className="impact-lbl">{m.l}</div>
+                <div className="impact-lbl">{m.lz&&lang==='zh'?m.lz:m.l}</div>
               </div>
             ))}
           </div>
@@ -1262,7 +1588,7 @@ function ProjectDetail({id,onClose}) {
         <div className="detail-section">
           <div className="detail-section-title">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
-            Tools & Technology
+            {u.tech}
           </div>
           <div className="tech-tags">{d.tech.map(t=><span className="tech-tag" key={t}>{t}</span>)}</div>
         </div>
@@ -1272,11 +1598,13 @@ function ProjectDetail({id,onClose}) {
 }
 
 /* ================================================================
-   ⚙️  MODULE 3 · APP ROOT  (routing + render — no edit needed)
+   ⚙️  MODULE 3 · APP ROOT
    ================================================================ */
 function App() {
   const [active,setActive]=useState('hero');
   const [detailId,setDetailId]=useState(null);
+  const [lang,setLang]=useState('en');
+  const toggle=React.useCallback(()=>setLang(l=>l==='en'?'zh':'en'),[]);
   useReveal();
 
   useEffect(()=>{
@@ -1289,21 +1617,24 @@ function App() {
   const openDetail=id=>{scrollPosRef.current=window.scrollY;setDetailId(id);window.scrollTo(0,0);};
   const closeDetail=()=>{setDetailId(null);requestAnimationFrame(()=>window.scrollTo(0,scrollPosRef.current));};
 
-  return <>
-    <div className="noise"/><Cursor/><Nav active={active}/>
-    <main>
-      <Hero/>
-      <About/>
-      <Experience/>
-      <ProjectsFull onDetail={openDetail}/>
-      {/* <PhotoWall/> */}{/* ✏️ Life at Work 暂时隐藏，取消注释即可恢复 */}
-      <Skills/>
-      <Contact/>
-    </main>
-    {/* ✏️ Footer — update year, name, title */}
-    <footer><span>© 2026 Xinyi Kong</span><span>AI Product Manager · Singapore</span></footer>
-    {detailId && <ProjectDetail id={detailId} onClose={closeDetail}/>}
-  </>;
+  const ctxVal=React.useMemo(()=>({lang,toggle}),[lang,toggle]);
+  return (
+    <LangCtx.Provider value={ctxVal}>
+      <div className="noise"/><Cursor/><Nav active={active}/>
+      <main>
+        <Hero/>
+        <About/>
+        <Experience/>
+        <ProjectsFull onDetail={openDetail}/>
+        {/* <PhotoWall/> */}{/* ✏️ Life at Work 暂时隐藏，取消注释即可恢复 */}
+        <Skills/>
+        <Contact/>
+      </main>
+      {/* ✏️ Footer */}
+      <footer><span>© 2026 Xinyi Kong</span><span>{UI[lang].footer}</span></footer>
+      {detailId && <ProjectDetail id={detailId} onClose={closeDetail}/>}
+    </LangCtx.Provider>
+  );
 }
 
 ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
